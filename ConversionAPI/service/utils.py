@@ -50,7 +50,7 @@ class VoiceConverter:
         pass
 
 
-    def convert(self, melspec_list: List[np.ndarray], target) -> np.ndarray:
+    def convert(self, melspec_list: List[np.ndarray], target) -> tuple[np.ndarray, int]:
         
         segment_list = List[np.ndarray]()
 
