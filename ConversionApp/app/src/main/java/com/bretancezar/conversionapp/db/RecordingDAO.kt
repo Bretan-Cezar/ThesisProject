@@ -10,11 +10,14 @@ import com.bretancezar.conversionapp.utils.Converters
 @TypeConverters( Converters::class )
 interface RecordingDAO {
 
+    @Query("SELECT * FROM recording WHERE id = :id")
+    fun findById(id: Long): Recording?
+
     @Query("SELECT * FROM recording WHERE speaker_class = :speakerClass")
     fun findBySpeakerClass(speakerClass: SpeakerClass): LiveData<List<Recording>>
 
     @Insert
-    fun save(recording: Recording)
+    fun save(recording: Recording): Recording
 
     @Query("DELETE FROM recording WHERE id = :id")
     fun deleteById(id: Long)

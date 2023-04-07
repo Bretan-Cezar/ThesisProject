@@ -6,10 +6,14 @@ import com.bretancezar.conversionapp.domain.SpeakerClass
 
 interface RecordingRepository {
 
+    fun findById(id: Long): Recording
+
     fun findBySpeakerClass(speakerClass: SpeakerClass): LiveData<List<Recording>>
 
-    fun save(recording: Recording)
+    fun save(recording: Recording): Recording
 
     fun deleteById(id: Long)
+
+    fun updateFilenameById(id: Long, newFilename: String)
 }
 

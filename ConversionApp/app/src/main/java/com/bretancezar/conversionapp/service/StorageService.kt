@@ -28,9 +28,9 @@ class StorageService @Inject constructor(
         return readRecordingFile(getRecordingFile(speakerClass, filename))
     }
 
-    fun addOriginalRecording(recording: Recording) {
+    fun addOriginalRecording(recording: Recording): Recording {
 
-        repo.save(recording)
+        return repo.save(recording)
     }
 
     fun addReceivedRecording(bytes: ByteArray, speakerClass: SpeakerClass) {
@@ -40,14 +40,59 @@ class StorageService @Inject constructor(
         val filename = "rec-${currentDateTime.formatToReadableDateTime()}-original.wav"
 
         writeRecordingFile(bytes, getRecordingFile(speakerClass, filename))
+
+        repo.save(Recording(
+            id = null,
+            datetime = currentDateTime,
+            speakerClass = speakerClass,
+            filename = filename
+        ))
     }
 
     fun deleteRecording(id: Long) {
 
+        val recording = repo.findById(id)
 
+        val file = getRecordingFile(recording.speakerClass, recording.filename)
+
+        if (file.exists()) {
+
+            deleteRecordingFile(file)
+            repo.deleteById(id)
+        }
+        else {
+
+            throw IllegalStateException("The file meant for deletion no longer exists or was not found on storage.")
+        }
     }
 
-    private fun getRecordingFile(speakerClass: SpeakerClass, filename: String): File {
+    fun renameRecording(id: Long, newName: String) {
+
+        val recording = repo.findById(id)
+
+        val speakerClass = recording.speakerClass
+        val originalName = recording.filename
+
+        val originalFile = getRecordingFile(speakerClass, originalName)
+        val newFile = getRecordingFile(speakerClass, newName)
+
+        if (originalFile.exists() && !newFile.exists()) {
+
+            renameRecordingFile(originalFile, newFile)
+
+            repo.updateFilenameById(id, newName)
+        }
+        else if (newFile.exists() && originalName != newName) {
+
+            throw IllegalArgumentException("A recording with the same name in the speaker class already exists.")
+        }
+        else if (!originalFile.exists()) {
+
+            throw IllegalStateException("The original recording to be renamed no longed exists.")
+        }
+    }
+
+    fun getRecordingFile(speakerClass: SpeakerClass, filename: String): File {
 
         val path: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
@@ -61,7 +106,7 @@ class StorageService @Inject constructor(
         return File(path)
     }
 
-    fun readRecordingFile(file: File): ByteArray {
+    private fun readRecordingFile(file: File): ByteArray {
 
         val size = file.length().toInt()
         val bytes = ByteArray(size)
@@ -109,6 +154,9 @@ class StorageService @Inject constructor(
         }
     }
 
+    /**
+     *  Call this function only after ensuring the file does exist.
+     */
     fun deleteRecordingFile(file: File) {
 
         if (file.delete()) {
@@ -117,7 +165,23 @@ class StorageService @Inject constructor(
         }
         else {
 
-            Log.e("STORAGE", "An error occurred on file deletion.")
+            Log.e("STORAGE", "An unexpected error occurred on file deletion.")
+        }
+    }
+
+    /**
+     *  Call this function only after ensuring newFile doesn't already exist and that
+     *  originalFile does exist.
+     */
+    private fun renameRecordingFile(originalFile: File, newFile: File) {
+
+        if (originalFile.renameTo(newFile)) {
+
+            Log.i("STORAGE", "File successfully renamed.")
+        }
+        else {
+
+            Log.e("STORAGE", "An unexpected error occurred on file renaming.")
         }
     }
 }

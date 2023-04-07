@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.IllegalStateException
 import javax.inject.Inject
 
 
@@ -28,23 +29,74 @@ class AppController @Inject constructor(
     suspend fun startRecording() {
 
         currentRecording = recorder.startRecording()
+
+        Log.i("RECORDER", "Device started recording to file ${currentRecording!!.filename}.")
     }
 
-    suspend fun stopRecording(): Recording? {
+    suspend fun stopRecording() {
 
         if (currentRecording != null) {
 
             recorder.stopRecording()
+            Log.i("RECORDER", "Device stopped recording to file ${currentRecording!!.filename}.")
+        }
+    }
+
+    fun saveOriginalRecording(): Recording? {
+
+        var ret: Recording? = null
+
+        if (currentRecording != null) {
+
+            ret = storage.addOriginalRecording(currentRecording!!)
+            currentRecording = null
         }
 
-        return currentRecording
+        return ret
     }
 
-    fun renameRecording(id: Long) {
 
+    fun abortOriginalRecording() {
+
+        if (currentRecording != null) {
+
+            storage.deleteRecordingFile(storage.getRecordingFile(currentRecording!!.speakerClass, currentRecording!!.filename))
+            currentRecording = null
+        }
     }
 
-    fun sendToAPI(
+    fun renameRecording(id: Long, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+
+        try {
+
+            storage.renameRecording(id, newName)
+            onSuccess()
+        }
+        catch (e: IllegalArgumentException) {
+
+            Log.e("STORAGE", e.stackTraceToString())
+            e.message?.let { onFailure(it) }
+        }
+        catch (e: IllegalStateException) {
+
+            Log.e("STORAGE", e.stackTraceToString())
+            e.message?.let { onFailure(it) }
+        }
+    }
+
+    fun deleteRecording(id: Long) {
+
+        try {
+
+            storage.deleteRecording(id)
+        }
+        catch (e: IllegalArgumentException) {
+
+            Log.e("STORAGE", e.stackTraceToString())
+        }
+    }
+
+    fun conversionAPICall(
         filename: String,
         targetSpeaker: SpeakerClass,
         onSuccess: () -> Unit,
@@ -72,19 +124,24 @@ class AppController @Inject constructor(
 
                     if (responseDto != null) {
 
-                        storage.addReceivedRecording(responseDto.audioData, SpeakerClass.valueOf(responseDto.targetSpeaker))
+                        try {
 
-                        awaitingResponse.value = false
-                        onSuccess()
+                            storage.addReceivedRecording(responseDto.audioData, SpeakerClass.valueOf(responseDto.targetSpeaker))
+                            awaitingResponse.value = false
+                            Log.i("NETWORK", "Server successfully responded.")
+                            onSuccess()
+                        }
+                        catch (e: IllegalArgumentException) {
 
-                        Log.i("NETWORK", "Server successfully responded.")
+                            Log.e("STORAGE", e.stackTraceToString())
+                        }
                     }
                     else {
 
                         awaitingResponse.value = false
                         onNetworkFailure("Network error.")
 
-                        Log.i("NETWORK", "Server failed has sent a bad response.")
+                        Log.e("NETWORK", "Server error; bad response.")
                     }
                 }
                 else {

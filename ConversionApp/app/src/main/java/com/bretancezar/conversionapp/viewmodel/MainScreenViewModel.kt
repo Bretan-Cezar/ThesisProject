@@ -44,19 +44,48 @@ class MainScreenViewModel @Inject constructor(
         }
     }
 
-    fun stopRecording() {
+    fun stopAndSaveRecording() {
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            _currentRecording.value = controller.stopRecording()
+            controller.stopRecording()
+            _currentRecording.value = controller.saveOriginalRecording()
         }
     }
+
+    fun stopAndAbortRecording() {
+
+        viewModelScope.launch(Dispatchers.Main) {
+
+            controller.stopRecording()
+            controller.abortOriginalRecording()
+        }
+    }
+
+    fun renameCurrentRecording(newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+
+        viewModelScope.launch(Dispatchers.IO) {
+
+            controller.renameRecording(_currentRecording.value!!.id!!, newName, onSuccess, onFailure)
+        }
+    }
+
+    fun deleteCurrentRecording() {
+
+        viewModelScope.launch {
+
+            controller.deleteRecording(_currentRecording.value!!.id!!)
+
+            _currentRecording.value = null
+        }
+    }
+
 
     fun sendForConversion(recording: Recording, targetSpeakerClass: SpeakerClass, onSuccess: () -> Unit, onNetworkFailure: (String) -> Unit) {
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            controller.sendToAPI(recording.filename, targetSpeakerClass, onSuccess, onNetworkFailure)
+            controller.conversionAPICall(recording.filename, targetSpeakerClass, onSuccess, onNetworkFailure)
         }
     }
 
