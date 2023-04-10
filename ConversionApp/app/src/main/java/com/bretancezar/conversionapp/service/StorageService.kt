@@ -1,6 +1,7 @@
 package com.bretancezar.conversionapp.service
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.Environment
 import android.util.Log
@@ -8,15 +9,31 @@ import androidx.lifecycle.LiveData
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.repository.RecordingRepository
-import com.bretancezar.conversionapp.utils.formatToReadableDateTime
+import com.bretancezar.conversionapp.utils.*
 import java.io.*
 import java.time.LocalDateTime
 import javax.inject.Inject
 
-class StorageService @Inject constructor(
+class StorageService @Inject constructor (
     private val repo: RecordingRepository,
-    private val context: Application
+    private val context: Context
 ) {
+
+    init {
+
+        // Create folders
+        SpeakerClass.values().toList().forEach {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+
+                File((context.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath) + "/$it").mkdir()
+            }
+            else {
+
+                File((context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath) + "/$it").mkdir()
+            }
+        }
+    }
 
     fun getBySpeakerClass(speakerClass: SpeakerClass): LiveData<List<Recording>> {
 
@@ -33,11 +50,11 @@ class StorageService @Inject constructor(
         return repo.save(recording)
     }
 
-    fun addReceivedRecording(bytes: ByteArray, speakerClass: SpeakerClass) {
+    fun addReceivedRecording(bytes: ByteArray, speakerClass: SpeakerClass, originalName: String, format: AudioFileFormats) {
 
         val currentDateTime = LocalDateTime.now()
 
-        val filename = "rec-${currentDateTime.formatToReadableDateTime()}-original.wav"
+        val filename = "${getFilenameWithoutExtension(originalName)}.${format.toString().lowercase()}"
 
         writeRecordingFile(bytes, getRecordingFile(speakerClass, filename))
 
@@ -66,9 +83,14 @@ class StorageService @Inject constructor(
         }
     }
 
-    fun renameRecording(id: Long, newName: String) {
+    fun renameRecording(id: Long, newName: String): Recording {
 
         val recording = repo.findById(id)
+
+        if (!checkFilenameHasExtension(newName, getFileExtension(recording.filename))) {
+
+            throw IllegalArgumentException("The new filename must have the same extension as the original one.")
+        }
 
         val speakerClass = recording.speakerClass
         val originalName = recording.filename
@@ -78,9 +100,10 @@ class StorageService @Inject constructor(
 
         if (originalFile.exists() && !newFile.exists()) {
 
+            val ret = repo.updateFilenameById(id, newName)
             renameRecordingFile(originalFile, newFile)
 
-            repo.updateFilenameById(id, newName)
+            return ret
         }
         else if (newFile.exists() && originalName != newName) {
 
@@ -89,6 +112,10 @@ class StorageService @Inject constructor(
         else if (!originalFile.exists()) {
 
             throw IllegalStateException("The original recording to be renamed no longed exists.")
+        }
+        else {
+
+            throw IllegalStateException("This should never be thrown")
         }
     }
 
@@ -153,6 +180,8 @@ class StorageService @Inject constructor(
             throw IllegalArgumentException("A recording with the same name already exists.")
         }
     }
+
+
 
     /**
      *  Call this function only after ensuring the file does exist.

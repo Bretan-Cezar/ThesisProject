@@ -1,58 +1,62 @@
 package com.bretancezar.conversionapp.controller
 
-import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.service.RecorderService
 import com.bretancezar.conversionapp.service.RetrofitService
 import com.bretancezar.conversionapp.service.StorageService
 import com.bretancezar.conversionapp.service.dto.ConversionDTO
+import com.bretancezar.conversionapp.utils.AudioFileFormats
 import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.lang.IllegalStateException
 import javax.inject.Inject
+import kotlin.IllegalStateException
 
 
-class AppController @Inject constructor(
-    private val retrofit: RetrofitService,
+class AppController @Inject constructor (
     private val recorder: RecorderService,
-    private val storage: StorageService,
-    private val context: Application) {
+    private val retrofit: RetrofitService,
+    private val storage: StorageService
+) {
 
     private var currentRecording: Recording? = null
 
     var awaitingResponse = MutableStateFlow(false)
 
-    suspend fun startRecording() {
+    fun startRecording() {
 
         currentRecording = recorder.startRecording()
 
         Log.i("RECORDER", "Device started recording to file ${currentRecording!!.filename}.")
     }
 
-    suspend fun stopRecording() {
+    fun stopRecording() {
 
         if (currentRecording != null) {
 
             recorder.stopRecording()
             Log.i("RECORDER", "Device stopped recording to file ${currentRecording!!.filename}.")
         }
+        else {
+            Log.i("AppController", "Currently not recording; no stop operation performed.")
+        }
     }
 
-    fun saveOriginalRecording(): Recording? {
-
-        var ret: Recording? = null
+    fun saveOriginalRecording(): Recording {
 
         if (currentRecording != null) {
 
-            ret = storage.addOriginalRecording(currentRecording!!)
+            val ret = storage.addOriginalRecording(currentRecording!!)
             currentRecording = null
+
+            return ret
         }
 
-        return ret
+        throw IllegalStateException("This should never be thrown")
     }
 
 
@@ -63,24 +67,32 @@ class AppController @Inject constructor(
             storage.deleteRecordingFile(storage.getRecordingFile(currentRecording!!.speakerClass, currentRecording!!.filename))
             currentRecording = null
         }
+
+        Log.i("AppController", "Currently not recording; no abort operation performed.")
     }
 
-    fun renameRecording(id: Long, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+    fun renameRecording(id: Long, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit): Recording? {
 
         try {
 
-            storage.renameRecording(id, newName)
+            val newRec = storage.renameRecording(id, newName)
             onSuccess()
+
+            return newRec
         }
         catch (e: IllegalArgumentException) {
 
             Log.e("STORAGE", e.stackTraceToString())
             e.message?.let { onFailure(it) }
+
+            return null
         }
         catch (e: IllegalStateException) {
 
             Log.e("STORAGE", e.stackTraceToString())
             e.message?.let { onFailure(it) }
+
+            return null
         }
     }
 
@@ -96,6 +108,11 @@ class AppController @Inject constructor(
         }
     }
 
+    fun findRecordingsBySpeakerClass(speakerClass: SpeakerClass): LiveData<List<Recording>> {
+
+        return storage.getBySpeakerClass(speakerClass)
+    }
+
     fun conversionAPICall(
         filename: String,
         targetSpeaker: SpeakerClass,
@@ -109,7 +126,7 @@ class AppController @Inject constructor(
 
         val dto = ConversionDTO(
             targetSpeaker = targetSpeaker.toString(),
-            audioFormat = RecorderService.FILE_FORMAT,
+            audioFormat = RecorderService.FILE_FORMAT.toString(),
             sampleRate = RecorderService.RECORDER_SAMPLE_RATE,
             audioData = bytes
         )
@@ -126,7 +143,13 @@ class AppController @Inject constructor(
 
                         try {
 
-                            storage.addReceivedRecording(responseDto.audioData, SpeakerClass.valueOf(responseDto.targetSpeaker))
+                            storage.addReceivedRecording(
+                                bytes = responseDto.audioData,
+                                speakerClass = SpeakerClass.valueOf(responseDto.targetSpeaker),
+                                originalName = filename,
+                                format = AudioFileFormats.valueOf(responseDto.audioFormat)
+                            )
+
                             awaitingResponse.value = false
                             Log.i("NETWORK", "Server successfully responded.")
                             onSuccess()

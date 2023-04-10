@@ -7,7 +7,9 @@ import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import javax.inject.Inject
 
-class RecordingRepositoryImpl @Inject constructor(private val dao: RecordingDAO) : RecordingRepository {
+class RecordingRepositoryImpl @Inject constructor (
+    private val dao: RecordingDAO
+) : RecordingRepository {
 
     override fun findById(id: Long): Recording {
 
@@ -32,10 +34,17 @@ class RecordingRepositoryImpl @Inject constructor(private val dao: RecordingDAO)
 
     override fun save(recording: Recording): Recording {
 
-        val ret = dao.save(recording)
+        val newId = dao.save(recording)
         Log.i("REPO", "Successfully saved new recording entry $recording to local DB.")
 
-        return ret
+        val newRec = dao.findById(newId)
+
+        if (newRec == null) {
+            Log.wtf("REPO", "No recording with the given id was found.")
+            throw IllegalArgumentException("No recording with the given id was found.")
+        }
+
+        return newRec
     }
 
     override fun deleteById(id: Long) {
@@ -44,9 +53,18 @@ class RecordingRepositoryImpl @Inject constructor(private val dao: RecordingDAO)
         Log.i("REPO", "Successfully deleted recording entry id=$id from local DB.")
     }
 
-    override fun updateFilenameById(id: Long, newFilename: String) {
+    override fun updateFilenameById(id: Long, newFilename: String): Recording {
 
         dao.updateFilename(id, newFilename)
         Log.i("REPO", "Successfully updated filename to $newFilename for recording entry id=$id")
+
+        val ret = dao.findById(id)
+
+        if (ret == null) {
+            Log.wtf("REPO", "No recording with the given id was found.")
+            throw IllegalArgumentException("No recording with the given id was found.")
+        }
+
+        return ret
     }
 }

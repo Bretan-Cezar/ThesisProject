@@ -14,6 +14,6 @@ interface RecordingRepository {
 
     fun deleteById(id: Long)
 
-    fun updateFilenameById(id: Long, newFilename: String)
+    fun updateFilenameById(id: Long, newFilename: String): Recording
 }
 

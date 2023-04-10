@@ -1,7 +1,7 @@
 package com.bretancezar.conversionapp.service
 
 import android.Manifest
-import android.app.Application
+import android.content.Context
 import android.content.pm.PackageManager
 import android.media.*
 import android.os.Build
@@ -11,18 +11,26 @@ import androidx.core.app.ActivityCompat
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.utils.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.concurrent.thread
 
 
-class RecorderService @Inject constructor(private var _applicationContext: Application) {
+class RecorderService @Inject constructor (
+    private var _applicationContext: Context
+) {
 
     private var _mediaRecorder: AudioRecord? = null
     private var _active: Boolean = false
+    private var _recordingThread: Thread? = null
 
     companion object {
 
@@ -42,7 +50,7 @@ class RecorderService @Inject constructor(private var _applicationContext: Appli
         private const val bufferElements2Rec = 1024
     }
 
-    suspend fun startRecording(): Recording {
+    fun startRecording(): Recording {
 
         if (!_active) {
 
@@ -68,21 +76,21 @@ class RecorderService @Inject constructor(private var _applicationContext: Appli
 
                 val currentDateTime = LocalDateTime.now()
 
-                val filename = "rec-${currentDateTime.formatToReadableDateTime()}-original.wav"
+                val filename = "rec-${currentDateTime.formatToReadableDateTime()}-${SpeakerClass.ORIGINAL}.wav"
 
                 val output: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 
-                    (_applicationContext.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath) + "/original/$filename"
+                    (_applicationContext.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath) + "/${SpeakerClass.ORIGINAL}/$filename"
                 }
                 else {
 
-                    (_applicationContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath) + "/original/$filename"
+                    (_applicationContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath) + "/${SpeakerClass.ORIGINAL}/$filename"
                 }
 
                 _mediaRecorder!!.startRecording()
                 _active = true
 
-                coroutineScope {
+                _recordingThread = thread(true) {
 
                     writeAudioDataToFile(output, FILE_FORMAT)
                 }
@@ -100,18 +108,17 @@ class RecorderService @Inject constructor(private var _applicationContext: Appli
         throw IllegalStateException("This should never be thrown")
     }
 
-    suspend fun stopRecording() {
+    fun stopRecording() {
 
         try {
             if (_active) {
 
-                coroutineScope {
-                    _mediaRecorder?.run {
-                        _active = false
-                        stop()
-                        release()
-                        _mediaRecorder = null
-                    }
+                _mediaRecorder?.run {
+                    _active = false
+                    stop()
+                    release()
+                    _mediaRecorder = null
+                    _recordingThread = null
                 }
             }
         }
@@ -121,8 +128,6 @@ class RecorderService @Inject constructor(private var _applicationContext: Appli
         catch (e: IOException) {
             Log.e("RecorderService", e.stackTraceToString())
         }
-
-        throw IllegalStateException("This should never be thrown")
     }
 
     private fun writeAudioDataToFile(path: String, format: AudioFileFormats) {
@@ -132,6 +137,8 @@ class RecorderService @Inject constructor(private var _applicationContext: Appli
         var os: FileOutputStream? = null
 
         try {
+
+            File(path).createNewFile()
 
             os = FileOutputStream(path)
         }

@@ -1,5 +1,6 @@
 package com.bretancezar.conversionapp
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
             ConversionAppTheme {
 
-                MainApplication()
+                MainApplication(/*this*/)
             }
         }
 
@@ -37,7 +38,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainApplication() {
+fun MainApplication(/*context: Context*/) {
 
-    AppNavigation()
+    AppNavigation(/*context*/)
 }

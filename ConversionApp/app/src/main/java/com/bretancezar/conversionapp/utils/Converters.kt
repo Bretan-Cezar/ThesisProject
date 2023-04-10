@@ -50,4 +50,9 @@ class Converters {
     fun classEnumToString(speakerClass: SpeakerClass): String {
         return speakerClass.toString()
     }
+
+    @TypeConverter
+    fun stringToClassEnum(string: String): SpeakerClass {
+        return SpeakerClass.valueOf(string)
+    }
 }

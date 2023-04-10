@@ -17,7 +17,7 @@ interface RecordingDAO {
     fun findBySpeakerClass(speakerClass: SpeakerClass): LiveData<List<Recording>>
 
     @Insert
-    fun save(recording: Recording): Recording
+    fun save(recording: Recording): Long
 
     @Query("DELETE FROM recording WHERE id = :id")
     fun deleteById(id: Long)

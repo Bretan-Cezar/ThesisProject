@@ -1,6 +1,7 @@
 package com.bretancezar.conversionapp.di
 
 import android.app.Application
+import android.content.Context
 import com.bretancezar.conversionapp.controller.AppController
 import com.bretancezar.conversionapp.db.RecordingDAO
 import com.bretancezar.conversionapp.db.RecordingRoomDatabase
@@ -20,27 +21,25 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class AppModule(private val application: Application? = null) {
+class AppModule {
+
+    @Provides
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
+    }
 
     @Singleton
     @Provides
     fun provideRetrofitService(): RetrofitService {
 
-        return RetrofitService.getInstance()!!
+        return RetrofitService.getInstance()
     }
 
     @Singleton
     @Provides
-    fun provideRecorderService(): RecorderService {
+    fun provideRecordingDAO(@ApplicationContext context: Context): RecordingDAO {
 
-        return RecorderService(application!!)
-    }
-
-    @Singleton
-    @Provides
-    fun provideRecordingDAO(): RecordingDAO {
-
-        return RecordingRoomDatabase.getDatabase(application!!).entityDao()
+        return RecordingRoomDatabase.getDatabase(context).entityDao()
     }
 
     @Module
@@ -50,12 +49,5 @@ class AppModule(private val application: Application? = null) {
         @Singleton
         @Binds
         fun provideRecordingRepository(repo: RecordingRepositoryImpl): RecordingRepository
-
-        @Singleton
-        fun provideStorageService(): StorageService
-
-//        @Singleton
-//        @Binds
-//        fun provideAppController(): AppController
     }
 }

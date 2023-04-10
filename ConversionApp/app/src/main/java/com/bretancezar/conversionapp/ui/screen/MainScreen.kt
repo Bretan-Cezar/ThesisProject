@@ -16,10 +16,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
+import com.bretancezar.conversionapp.ui.theme.DarkYellow
+import com.bretancezar.conversionapp.ui.theme.Typography
+import com.bretancezar.conversionapp.utils.deltaSecondsToTime
 import com.bretancezar.conversionapp.viewmodel.MainScreenViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -31,7 +37,9 @@ fun MainScreen(
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
 
-    val onNoNetwork: (String) -> Unit = {
+    val currentRecording by viewModel.currentRecording.collectAsState()
+
+    val showSnackbarWithMessage: (String) -> Unit = {
 
         coroutineScope.launch {
 
@@ -58,7 +66,7 @@ fun MainScreen(
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                RecordingsFab(navControllerAccessObject)
+                RecordingsFab(viewModel, navControllerAccessObject)
             }
         }
 
@@ -66,10 +74,18 @@ fun MainScreen(
 
         MainBody {
 
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-                SpeakerSelector(viewModel)
                 RecordBtn(viewModel)
+
+                if (currentRecording != null) {
+
+                    FilenameModifier(viewModel, showSnackbarWithMessage)
+                }
             }
         }
     }
@@ -205,38 +221,43 @@ fun SpeakerSelector(viewModel: MainScreenViewModel) {
 @Composable
 fun RecordBtn(viewModel: MainScreenViewModel) {
 
-    var buttonState: Boolean? by remember {
-        mutableStateOf(null)
-    }
+    val buttonState: Boolean by viewModel.recordingButtonState.collectAsState()
 
-    var buttonColor by remember {
-        mutableStateOf(Color.Green)
-    }
+    val buttonColor by viewModel.buttonColor.collectAsState()
 
-    var buttonIcon by remember {
-        mutableStateOf(R.drawable.baseline_fiber_manual_record_128)
+    val buttonIcon by viewModel.buttonIcon.collectAsState()
+
+    val recordedSeconds by viewModel.secondsRecorded.collectAsState()
+
+    LaunchedEffect(buttonState) {
+
+        while (buttonState && recordedSeconds < 300) {
+            delay(1.seconds)
+            viewModel.increaseTimer()
+        }
+
+        if (recordedSeconds == 300) {
+
+            viewModel.stopAndSaveRecording()
+        }
     }
 
     Box(
         modifier = Modifier
-            .height(400.dp)
+            .height(200.dp)
             .fillMaxWidth(),
-        contentAlignment = Alignment.BottomCenter) {
+        contentAlignment = Alignment.Center) {
+
         Button(
             onClick = {
 
-                    if (buttonState == false || buttonState == null) {
+                    if (!buttonState) {
 
                         viewModel.startRecording()
-                        buttonState = true
-                        buttonColor = Color.Red
-                        buttonIcon = R.drawable.baseline_stop_128
+
                     } else {
 
-                        viewModel.stopRecording()
-                        buttonState = false
-                        buttonColor = Color.Green
-                        buttonIcon = R.drawable.baseline_fiber_manual_record_128
+                        viewModel.stopAndSaveRecording()
                     }
 
             },
@@ -251,15 +272,20 @@ fun RecordBtn(viewModel: MainScreenViewModel) {
             )
         }
     }
+
+    Text(text = "${deltaSecondsToTime(recordedSeconds)} / ${deltaSecondsToTime(300)}",
+        modifier = Modifier,
+        fontSize = 24.sp)
 }
 
 @Composable
-fun RecordingsFab(navControllerAccessObject: NavControllerAccessObject) {
+fun RecordingsFab(viewModel: MainScreenViewModel, navControllerAccessObject: NavControllerAccessObject) {
 
     FloatingActionButton(
         shape = CircleShape,
         onClick = {
-                  navControllerAccessObject.navigateFromMainToRecordings()
+            viewModel.stopAndAbortRecording()
+            navControllerAccessObject.navigateFromMainToRecordings()
         },
         backgroundColor = MaterialTheme.colors.background,
     ) {
@@ -269,5 +295,56 @@ fun RecordingsFab(navControllerAccessObject: NavControllerAccessObject) {
             contentDescription = "recordings",
             modifier = Modifier.padding(6.dp)
         )
+    }
+}
+
+@Composable
+fun FilenameModifier(viewModel: MainScreenViewModel, snackbarAction: (String) -> Unit) {
+
+    val recording by viewModel.currentRecording.collectAsState()
+
+    var fieldText: String by remember {
+        mutableStateOf(recording?.filename ?: "")
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.background(DarkYellow)
+    ) {
+
+        TextField(
+            value = fieldText,
+            onValueChange = {
+                fieldText = it
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth(fraction = 0.7f)
+                .horizontalScroll(rememberScrollState())
+                .background(Color.DarkGray)
+        )
+
+        Button(
+            colors = ButtonDefaults.buttonColors(backgroundColor = DarkYellow),
+
+            onClick = {
+
+                viewModel.renameCurrentRecording(
+                    fieldText,
+                    {snackbarAction("Recording successfully renamed!")},
+                    snackbarAction
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(intrinsicSize = IntrinsicSize.Max)
+                .background(
+                    color = DarkYellow
+                ),
+        ) {
+
+            Text(text = "Rename")
+        }
+
     }
 }

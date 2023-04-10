@@ -1,11 +1,9 @@
 package com.bretancezar.conversionapp.service.dto
 
-import com.bretancezar.conversionapp.utils.AudioFileFormats
-
 data class ConversionDTO(
 
     val targetSpeaker: String,
-    val audioFormat: AudioFileFormats,
+    val audioFormat: String,
     val sampleRate: Int,
     val audioData: ByteArray
 ) {

@@ -17,7 +17,7 @@ interface RetrofitService {
 
         private var _retrofitService: RetrofitService? = null
 
-        private operator fun invoke(): RetrofitService? {
+        private operator fun invoke(): RetrofitService {
 
             // TODO replace with server IP
             val baseURLString = "192.168.149.49:2305/api/"
@@ -40,14 +40,18 @@ interface RetrofitService {
             return retrofit.create(RetrofitService::class.java)
         }
 
-        fun getInstance(): RetrofitService? {
+        fun getInstance(): RetrofitService {
 
             if (_retrofitService == null) {
 
-                _retrofitService = RetrofitService()
+                val new = RetrofitService()
+
+                _retrofitService = new
+
+                return new
             }
 
-            return _retrofitService
+            throw IllegalStateException("Error on Retrofit instance creation.")
         }
     }
 }
