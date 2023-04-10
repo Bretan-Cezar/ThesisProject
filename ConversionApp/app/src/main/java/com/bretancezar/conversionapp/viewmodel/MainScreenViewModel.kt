@@ -27,48 +27,108 @@ class MainScreenViewModel @Inject constructor (
 
 
     private var _selectedSpeaker: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    private var _currentRecording: MutableStateFlow<Recording?> = MutableStateFlow(null)
-
-    private var _secondsRecorded: MutableStateFlow<Int> = MutableStateFlow(0)
-
-    private var _recordingButtonState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    private var _buttonColor: MutableStateFlow<Color> = MutableStateFlow(Color.Green)
-
-    private var _buttonIcon: MutableStateFlow<Int> = MutableStateFlow(R.drawable.baseline_fiber_manual_record_128)
-
     var selectedSpeaker: StateFlow<String?> = _selectedSpeaker
 
+    private var _currentRecording: MutableStateFlow<Recording?> = MutableStateFlow(null)
     var currentRecording: StateFlow<Recording?> = _currentRecording
+
+    private var _secondsRecorded: MutableStateFlow<Int> = MutableStateFlow(0)
+    var secondsRecorded: StateFlow<Int> = _secondsRecorded
+
+    private var _recordingButtonState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var recordingButtonState: StateFlow<Boolean> = _recordingButtonState
+
+    private var _buttonColor: MutableStateFlow<Color> = MutableStateFlow(Color.Green)
+    var buttonColor: StateFlow<Color> = _buttonColor
+
+    private var _buttonIcon: MutableStateFlow<Int> = MutableStateFlow(R.drawable.baseline_fiber_manual_record_128)
+    var buttonIcon: StateFlow<Int> = _buttonIcon
+
+    private var _currentRecordingDuration: MutableStateFlow<Int> = MutableStateFlow(0)
+    var currentRecordingDuration: StateFlow<Int> = _currentRecordingDuration
+
+    private var _timeElapsed: MutableStateFlow<Int> = MutableStateFlow(0)
+    var timeElapsed: StateFlow<Int> = _timeElapsed
+
+    private var _currentlyPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var currentlyPlaying: StateFlow<Boolean> = _currentlyPlaying
+
+    private var _playbackButtonIcon: MutableStateFlow<Int> = MutableStateFlow(R.drawable.baseline_play_arrow_36)
+    var playbackButtonIcon: StateFlow<Int> = _playbackButtonIcon
+
 
     var awaitingResponse: StateFlow<Boolean> = controller.awaitingResponse
 
-    var secondsRecorded: StateFlow<Int> = _secondsRecorded
-    var recordingButtonState: StateFlow<Boolean> = _recordingButtonState
-    var buttonColor: StateFlow<Color> = _buttonColor
-    var buttonIcon: StateFlow<Int> = _buttonIcon
 
     fun setSelectedSpeaker(speaker: String?) {
 
         _selectedSpeaker.value = speaker
     }
 
-    fun increaseTimer() {
+    fun increaseRecordedSeconds() {
 
         _secondsRecorded.value++
+    }
+
+    fun getElapsedTime() {
+
+        _timeElapsed.value = controller.getPlayerElapsedMs()
     }
 
     fun setCurrentRecording(recording: Recording) {
 
         _currentRecording.value = recording
+        controller.initPlayer(recording)
+        _currentRecordingDuration.value = controller.getRecordingDurationInMs()
+        _currentlyPlaying.value = false
+
+        _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
+    }
+
+    private fun unsetCurrentRecording() {
+
+        _currentRecording.value = null
+        controller.destroyPlayer()
+        _currentRecordingDuration.value = 0
+        _currentlyPlaying.value = false
+
+        _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
+    }
+
+    fun startPlayback() {
+
+        controller.startPlayback()
+        _currentlyPlaying.value = true
+        _playbackButtonIcon.value = R.drawable.baseline_pause_36
+    }
+
+    fun pausePlayback() {
+
+        controller.pausePlayback()
+        _currentlyPlaying.value = false
+        _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
+        _timeElapsed.value = controller.getPlayerElapsedMs()
+    }
+
+    fun resetPlayback() {
+
+        controller.resetPlayback()
+        _currentlyPlaying.value = false
+        _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
+        _timeElapsed.value = 0
+    }
+
+    fun seekPlayback(ms: Int) {
+
+        controller.seekPlayback(ms)
+        _timeElapsed.value = ms
     }
 
     fun startRecording() {
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            _currentRecording.value = null
+            unsetCurrentRecording()
 
             _recordingButtonState.value = true
             _buttonColor.value = Color.Red
@@ -86,7 +146,7 @@ class MainScreenViewModel @Inject constructor (
 
             val newRecording = controller.saveOriginalRecording()
 
-            _currentRecording.value = newRecording
+            setCurrentRecording(newRecording)
 
             _recordingButtonState.value = false
             _buttonColor.value = Color.Green
@@ -102,7 +162,7 @@ class MainScreenViewModel @Inject constructor (
             controller.stopRecording()
             controller.abortOriginalRecording()
 
-            _currentRecording.value = null
+            unsetCurrentRecording()
 
             _recordingButtonState.value = false
             _buttonColor.value = Color.Green
@@ -119,7 +179,7 @@ class MainScreenViewModel @Inject constructor (
 
             if (newRecording != null) {
 
-                _currentRecording.value = newRecording
+                setCurrentRecording(newRecording)
             }
         }
     }
@@ -130,7 +190,7 @@ class MainScreenViewModel @Inject constructor (
 
             controller.deleteRecording(_currentRecording.value!!.id!!)
 
-            _currentRecording.value = null
+            unsetCurrentRecording()
         }
     }
 
@@ -142,5 +202,4 @@ class MainScreenViewModel @Inject constructor (
             controller.conversionAPICall(recording.filename, targetSpeakerClass, onSuccess, onNetworkFailure)
         }
     }
-
 }

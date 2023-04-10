@@ -7,6 +7,7 @@ import com.bretancezar.conversionapp.db.RecordingDAO
 import com.bretancezar.conversionapp.db.RecordingRoomDatabase
 import com.bretancezar.conversionapp.repository.RecordingRepository
 import com.bretancezar.conversionapp.repository.RecordingRepositoryImpl
+import com.bretancezar.conversionapp.service.PlayerService
 import com.bretancezar.conversionapp.service.RecorderService
 import com.bretancezar.conversionapp.service.RetrofitService
 import com.bretancezar.conversionapp.service.StorageService

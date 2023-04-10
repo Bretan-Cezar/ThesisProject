@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
+import com.bretancezar.conversionapp.service.PlayerService
 import com.bretancezar.conversionapp.service.RecorderService
 import com.bretancezar.conversionapp.service.RetrofitService
 import com.bretancezar.conversionapp.service.StorageService
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 import javax.inject.Inject
 import kotlin.IllegalStateException
 
@@ -20,12 +22,72 @@ import kotlin.IllegalStateException
 class AppController @Inject constructor (
     private val recorder: RecorderService,
     private val retrofit: RetrofitService,
-    private val storage: StorageService
+    private val storage: StorageService,
+    private val player: PlayerService
 ) {
 
     private var currentRecording: Recording? = null
 
     var awaitingResponse = MutableStateFlow(false)
+
+    fun initPlayer(recording: Recording) {
+
+        try {
+
+            player.initPlayer(recording.filename, recording.speakerClass)
+            Log.i("PLAYER", "Successfully initialized player for file ${recording.filename}")
+        }
+        catch (e: IOException) {
+
+            Log.e("PLAYER", e.stackTraceToString())
+        }
+    }
+
+    fun startPlayback() {
+        player.startPlayer()
+        Log.i("PLAYER", "Currently playing audio...")
+    }
+
+    fun pausePlayback() {
+        player.pausePlayer()
+        Log.i("PLAYER", "Paused playback.")
+    }
+
+    fun resetPlayback() {
+        player.resetPlayer()
+        Log.i("PLAYER", "Reset playback to beginning of track.")
+    }
+
+    fun seekPlayback(ms: Int) {
+        player.setPlayerPosition(ms)
+        Log.i("PLAYER", "Seeked to ${ms/1000} seconds within the track.")
+    }
+
+    fun destroyPlayer() {
+
+        try {
+            player.destroyPlayer()
+            Log.i("PLAYER", "Stopped playback and destroyed player instance.")
+        }
+        catch (e: IllegalStateException) {
+            Log.e("PLAYER", e.stackTraceToString())
+        }
+    }
+
+    fun getRecordingDurationInMs(): Int {
+
+        return player.getMediaLength()
+    }
+
+    fun getPlayerElapsedMs(): Int {
+
+        return player.getPlayerPosition()
+    }
+
+    fun seekPlayerToSeconds(ms: Int) {
+
+        player.setPlayerPosition(ms)
+    }
 
     fun startRecording() {
 
@@ -42,7 +104,7 @@ class AppController @Inject constructor (
             Log.i("RECORDER", "Device stopped recording to file ${currentRecording!!.filename}.")
         }
         else {
-            Log.i("AppController", "Currently not recording; no stop operation performed.")
+            Log.w("AppController", "Currently not recording; no stop operation performed.")
         }
     }
 
@@ -68,7 +130,7 @@ class AppController @Inject constructor (
             currentRecording = null
         }
 
-        Log.i("AppController", "Currently not recording; no abort operation performed.")
+        Log.w("AppController", "Currently not recording; no abort operation performed.")
     }
 
     fun renameRecording(id: Long, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit): Recording? {

@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
 import com.bretancezar.conversionapp.ui.theme.DarkYellow
-import com.bretancezar.conversionapp.ui.theme.Typography
 import com.bretancezar.conversionapp.utils.deltaSecondsToTime
 import com.bretancezar.conversionapp.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.delay
@@ -85,6 +84,7 @@ fun MainScreen(
                 if (currentRecording != null) {
 
                     FilenameModifier(viewModel, showSnackbarWithMessage)
+                    AudioPlayer(viewModel)
                 }
             }
         }
@@ -233,7 +233,7 @@ fun RecordBtn(viewModel: MainScreenViewModel) {
 
         while (buttonState && recordedSeconds < 300) {
             delay(1.seconds)
-            viewModel.increaseTimer()
+            viewModel.increaseRecordedSeconds()
         }
 
         if (recordedSeconds == 300) {
@@ -268,7 +268,7 @@ fun RecordBtn(viewModel: MainScreenViewModel) {
 
             Image(
                 painter = painterResource(buttonIcon),
-                contentDescription = "recordBtnState"
+                contentDescription = "toggleRecording"
             )
         }
     }
@@ -346,5 +346,95 @@ fun FilenameModifier(viewModel: MainScreenViewModel, snackbarAction: (String) ->
             Text(text = "Rename")
         }
 
+    }
+}
+
+@Composable
+fun AudioPlayer(viewModel: MainScreenViewModel) {
+
+    val timeElapsed by viewModel.timeElapsed.collectAsState()
+
+    val duration by viewModel.currentRecordingDuration.collectAsState()
+
+    val currentlyPlaying by viewModel.currentlyPlaying.collectAsState()
+
+    val buttonIcon by viewModel.playbackButtonIcon.collectAsState()
+
+    var sliderIsChanging by remember { mutableStateOf(false) }
+
+    var localSliderValue by remember { mutableStateOf(0f) }
+
+    val sliderProgress =
+        if (sliderIsChanging) localSliderValue else timeElapsed.toFloat() / duration
+
+    LaunchedEffect(currentlyPlaying) {
+
+        while (currentlyPlaying && timeElapsed < duration) {
+            delay(0.1.seconds)
+            viewModel.getElapsedTime()
+        }
+        if (timeElapsed == duration) {
+            viewModel.resetPlayback()
+        }
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = Color.DarkGray,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .border(
+                BorderStroke(1.dp, MaterialTheme.colors.onBackground),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(8.dp)
+    ) {
+
+        Text(text = deltaSecondsToTime(timeElapsed / 1000),
+            modifier = Modifier.padding(8.dp),
+            fontSize = 24.sp)
+
+        Slider(
+            value = sliderProgress,
+            modifier = Modifier.fillMaxWidth(fraction = 0.6f),
+            colors = SliderDefaults.colors(Color.White),
+            onValueChange = { newPosition -> run {
+                    localSliderValue = newPosition
+                    sliderIsChanging = true
+                }
+            },
+            onValueChangeFinished = {
+                viewModel.seekPlayback((duration * localSliderValue).toInt())
+                sliderIsChanging = false
+            }
+        )
+
+        Text(text = deltaSecondsToTime(duration / 1000),
+            modifier = Modifier.padding(8.dp),
+            fontSize = 24.sp)
+
+        Button(
+            onClick = {
+                if (currentlyPlaying) {
+                    viewModel.pausePlayback()
+                }
+                else {
+                    viewModel.startPlayback()
+                }
+            },
+            modifier = Modifier
+                .height(intrinsicSize = IntrinsicSize.Max),
+            colors = ButtonDefaults.buttonColors(Color(0x00000000))
+        ) {
+
+            Image(
+                painter = painterResource(buttonIcon),
+                contentDescription = "togglePlayback"
+            )
+        }
     }
 }
