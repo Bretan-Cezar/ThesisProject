@@ -19,15 +19,15 @@ class MainScreenViewModel @Inject constructor (
     private val controller: AppController
 ): ViewModel() {
 
-    val speakersList: List<String> =
+    val speakersList: List<SpeakerClass> =
         SpeakerClass
             .values()
             .toList()
-            .filter { return@filter it != SpeakerClass.ORIGINAL }.map { it.toString() }
+            .filter { return@filter it != SpeakerClass.ORIGINAL }
 
 
-    private var _selectedSpeaker: MutableStateFlow<String?> = MutableStateFlow(null)
-    var selectedSpeaker: StateFlow<String?> = _selectedSpeaker
+    private var _selectedSpeaker: MutableStateFlow<SpeakerClass?> = MutableStateFlow(null)
+    var selectedSpeaker: StateFlow<SpeakerClass?> = _selectedSpeaker
 
     private var _currentRecording: MutableStateFlow<Recording?> = MutableStateFlow(null)
     var currentRecording: StateFlow<Recording?> = _currentRecording
@@ -56,11 +56,17 @@ class MainScreenViewModel @Inject constructor (
     private var _playbackButtonIcon: MutableStateFlow<Int> = MutableStateFlow(R.drawable.baseline_play_arrow_36)
     var playbackButtonIcon: StateFlow<Int> = _playbackButtonIcon
 
+    private var _conversionDialogShown: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var conversionDialogShown: StateFlow<Boolean> = _conversionDialogShown
+
+    private var _deletionDialogShown: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var deletionDialogShown: StateFlow<Boolean> = _deletionDialogShown
+
 
     var awaitingResponse: StateFlow<Boolean> = controller.awaitingResponse
 
 
-    fun setSelectedSpeaker(speaker: String?) {
+    fun setSelectedSpeaker(speaker: SpeakerClass?) {
 
         _selectedSpeaker.value = speaker
     }
@@ -75,19 +81,41 @@ class MainScreenViewModel @Inject constructor (
         _timeElapsed.value = controller.getPlayerElapsedMs()
     }
 
+    fun showConversionDialog() {
+
+        _conversionDialogShown.value = true
+    }
+
+    fun hideConversionDialog() {
+
+        _conversionDialogShown.value = false
+    }
+
+    fun showDeletionDialog() {
+
+        _deletionDialogShown.value = true
+    }
+
+    fun hideDeletionDialog() {
+
+        _deletionDialogShown.value = false
+    }
+
     fun setCurrentRecording(recording: Recording) {
 
-        _currentRecording.value = recording
         controller.initPlayer(recording)
         _currentRecordingDuration.value = controller.getRecordingDurationInMs()
         _currentlyPlaying.value = false
 
         _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
+
+        _currentRecording.value = recording
     }
 
     private fun unsetCurrentRecording() {
 
         _currentRecording.value = null
+
         controller.destroyPlayer()
         _currentRecordingDuration.value = 0
         _currentlyPlaying.value = false
@@ -193,7 +221,6 @@ class MainScreenViewModel @Inject constructor (
             unsetCurrentRecording()
         }
     }
-
 
     fun sendForConversion(recording: Recording, targetSpeakerClass: SpeakerClass, onSuccess: () -> Unit, onNetworkFailure: (String) -> Unit) {
 

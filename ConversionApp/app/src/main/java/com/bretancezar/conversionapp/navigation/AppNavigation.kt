@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.bretancezar.conversionapp.controller.AppController
 import com.bretancezar.conversionapp.db.RecordingRoomDatabase
 import com.bretancezar.conversionapp.domain.Recording
+import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.repository.RecordingRepository
 import com.bretancezar.conversionapp.repository.RecordingRepositoryImpl
 import com.bretancezar.conversionapp.service.RecorderService
@@ -20,13 +21,19 @@ import com.bretancezar.conversionapp.ui.screen.RecordingsScreen
 import com.bretancezar.conversionapp.viewmodel.MainScreenViewModel
 import com.bretancezar.conversionapp.viewmodel.RecordingsScreenViewModel
 
-class NavControllerAccessObject(navController: NavHostController, mainScreenViewModel: MainScreenViewModel) {
+class NavControllerAccessObject(
+    navController: NavHostController,
+    mainScreenViewModel: MainScreenViewModel,
+    recordingsScreenViewModel: RecordingsScreenViewModel
+) {
 
     private val controller = navController
     private val mainVM = mainScreenViewModel
+    private val recVM = recordingsScreenViewModel
 
-    fun navigateFromMainToRecordings() {
+    fun navigateFromMainToRecordings(selectedClass: SpeakerClass = SpeakerClass.ORIGINAL) {
 
+        recVM.setRecordingsFromSpeakerClass(selectedClass)
         controller.navigate("recordings")
     }
 
@@ -44,9 +51,6 @@ fun AppNavigation(/*context: Context*/) {
 
     val navController = rememberNavController()
 
-    // TODO: Use Dagger-Hilt for DI
-    /** DI is being handled manually here **/
-
 //    val recorderService = RecorderService(context)
 //    val dao = RecordingRoomDatabase.getDatabase(context).entityDao()
 //
@@ -60,7 +64,7 @@ fun AppNavigation(/*context: Context*/) {
     val mainScreenViewModel: MainScreenViewModel = hiltViewModel() //MainScreenViewModel(appController)
     val recordingsScreenViewModel: RecordingsScreenViewModel = hiltViewModel() //RecordingsScreenViewModel(appController)
 
-    val accessObject = NavControllerAccessObject(navController, mainScreenViewModel)
+    val accessObject = NavControllerAccessObject(navController, mainScreenViewModel, recordingsScreenViewModel)
 
     NavHost(navController = navController, startDestination = "main") {
 

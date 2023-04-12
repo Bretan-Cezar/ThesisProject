@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 interface RetrofitService {
 
     @POST("convert/")
-    fun convert(dto: ConversionDTO): Call<ConversionDTO>
+    fun convert(@Body dto: ConversionDTO): Call<ConversionDTO>
 
     companion object {
 
@@ -20,8 +20,8 @@ interface RetrofitService {
         private operator fun invoke(): RetrofitService {
 
             // TODO replace with server IP
-            val baseURLString = "192.168.149.49:2305/api/"
-            val serverTimeoutInterval: Long = 3
+            val baseURLString = "192.168.1.67:8090/api/"
+            val serverTimeoutInterval: Long = 8
 
             val http = OkHttpClient.Builder()
                 .connectTimeout(serverTimeoutInterval, TimeUnit.SECONDS)
@@ -29,7 +29,6 @@ interface RetrofitService {
                 .readTimeout(serverTimeoutInterval, TimeUnit.SECONDS)
                 .writeTimeout(serverTimeoutInterval, TimeUnit.SECONDS)
                 .build()
-
 
             val retrofit = Retrofit.Builder()
                 .baseUrl("http://$baseURLString")

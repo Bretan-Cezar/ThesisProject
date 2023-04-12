@@ -10,6 +10,7 @@
 
     <application
             android:hardwareAccelerated="false"
+            android:usesCleartextTraffic="true"
             android:largeHeap="true"
             android:allowBackup="true"
             android:name=".Application"

@@ -64,12 +64,12 @@ fun RecordingsScreen(
                 },
                 buttons = {
                     Row(
-                        modifier = Modifier.padding(all = 8.dp),
-                        horizontalArrangement = Arrangement.Center
+                        modifier = Modifier.padding(all = 8.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
                         Button(
 
-                            modifier = Modifier.fillMaxWidth(fraction = 0.5f),
+                            modifier = Modifier.fillMaxWidth(fraction = 0.4f),
                             onClick = {
 
                                 viewModel.deleteRecording()
@@ -80,7 +80,7 @@ fun RecordingsScreen(
                         }
                         Button(
 
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth(fraction = 0.66f),
                             onClick = {
 
                                 viewModel.unsetEntityToConfirm()
@@ -267,13 +267,9 @@ fun RecordingCard(
             Text(text = "Datetime: " + entity.datetime)
         }
 
+        RecordingCardButtonDivider()
 
-        if (entity.speakerClass == SpeakerClass.ORIGINAL) {
-
-            RecordingCardButtonDivider()
-
-            ViewRecordingButton(entity, navControllerAccessObject)
-        }
+        ViewRecordingButton(entity, navControllerAccessObject)
 
         RecordingCardButtonDivider()
 
@@ -338,7 +334,6 @@ fun ShareRecordingButton(entity: Recording) {
 fun DeleteRecordingButton(viewModel: RecordingsScreenViewModel, entity: Recording) {
 
     Column(
-
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
@@ -368,8 +363,4 @@ fun RecordingCardButtonDivider() {
             .width(2.dp),
         color = MaterialTheme.colors.onBackground
     )
-}
-
-fun RecordingPlayer() {
-
 }

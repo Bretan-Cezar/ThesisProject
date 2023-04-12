@@ -139,7 +139,6 @@ class RecorderService @Inject constructor (
         try {
 
             File(path).createNewFile()
-
             os = FileOutputStream(path)
         }
         catch (e: FileNotFoundException) {
