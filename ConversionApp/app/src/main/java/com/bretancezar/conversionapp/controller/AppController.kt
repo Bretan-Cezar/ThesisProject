@@ -9,8 +9,11 @@ import com.bretancezar.conversionapp.service.RecorderService
 import com.bretancezar.conversionapp.service.RetrofitService
 import com.bretancezar.conversionapp.service.StorageService
 import com.bretancezar.conversionapp.service.dto.ConversionDTO
-import com.bretancezar.conversionapp.utils.AudioFileFormats
+import com.bretancezar.conversionapp.utils.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -178,8 +181,9 @@ class AppController @Inject constructor (
     fun conversionAPICall(
         filename: String,
         targetSpeaker: SpeakerClass,
-        onSuccess: () -> Unit,
-        onNetworkFailure: (String) -> Unit
+        onSuccessUI: () -> Unit,
+        onNetworkFailureUI: (String) -> Unit,
+        ioScope: CoroutineScope
     ) {
 
         val bytes = storage.readRecording(SpeakerClass.ORIGINAL, filename)
@@ -190,7 +194,7 @@ class AppController @Inject constructor (
             targetSpeaker = targetSpeaker.toString(),
             audioFormat = RecorderService.FILE_FORMAT.toString(),
             sampleRate = RecorderService.RECORDER_SAMPLE_RATE,
-            audioData = bytes
+            audioData = bytes.toBase64()
         )
 
         retrofit.convert(dto).enqueue(object : Callback<ConversionDTO> {
@@ -205,16 +209,18 @@ class AppController @Inject constructor (
 
                         try {
 
-                            storage.addReceivedRecording(
-                                bytes = responseDto.audioData,
-                                speakerClass = SpeakerClass.valueOf(responseDto.targetSpeaker),
-                                originalName = filename,
-                                format = AudioFileFormats.valueOf(responseDto.audioFormat)
-                            )
+                            ioScope.launch(Dispatchers.IO) {
+                                storage.addReceivedRecording(
+                                    bytes = responseDto.audioData.fromBase64(),
+                                    speakerClass = SpeakerClass.valueOf(responseDto.targetSpeaker),
+                                    originalName = filename,
+                                    format = AudioFileFormats.valueOf(responseDto.audioFormat)
+                                )
+                                awaitingResponse.value = false
+                            }
 
-                            awaitingResponse.value = false
                             Log.i("NETWORK", "Server successfully responded.")
-                            onSuccess()
+                            onSuccessUI()
                         }
                         catch (e: IllegalArgumentException) {
 
@@ -224,7 +230,7 @@ class AppController @Inject constructor (
                     else {
 
                         awaitingResponse.value = false
-                        onNetworkFailure("Network error.")
+                        onNetworkFailureUI("Network error.")
 
                         Log.e("NETWORK", "Server error; bad response.")
                     }
@@ -232,14 +238,14 @@ class AppController @Inject constructor (
                 else {
 
                     awaitingResponse.value = false
-                    onNetworkFailure("Network error.")
+                    onNetworkFailureUI("Network error.")
                     Log.e("NETWORK", "Server error; returned response code ${response.code()}.")
                 }
             }
             override fun onFailure(call: Call<ConversionDTO>, t: Throwable) {
 
                 awaitingResponse.value = false
-                onNetworkFailure("Network error.")
+                onNetworkFailureUI("Network error.")
                 Log.e("NETWORK", t.stackTraceToString())
             }
         })

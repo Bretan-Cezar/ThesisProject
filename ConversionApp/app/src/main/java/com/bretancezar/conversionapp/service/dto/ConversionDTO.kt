@@ -5,7 +5,7 @@ data class ConversionDTO(
     val targetSpeaker: String,
     val audioFormat: String,
     val sampleRate: Int,
-    val audioData: ByteArray
+    val audioData: String
 ) {
     override fun equals(other: Any?): Boolean {
 
@@ -30,7 +30,7 @@ data class ConversionDTO(
 
         result = 31 * result + sampleRate
 
-        result = 31 * result + audioData.contentHashCode()
+        result = 31 * result + audioData.hashCode()
 
         return result
     }

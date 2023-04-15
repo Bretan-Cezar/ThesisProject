@@ -54,7 +54,7 @@ class StorageService @Inject constructor (
 
         val currentDateTime = LocalDateTime.now()
 
-        val filename = "${getFilenameWithoutExtension(originalName)}.${format.toString().lowercase()}"
+        val filename = "${getFilenameWithoutExtension(originalName)}-conv-${speakerClass}.${format.toString().lowercase()}"
 
         writeRecordingFile(bytes, getRecordingFile(speakerClass, filename))
 

@@ -62,7 +62,6 @@ class MainScreenViewModel @Inject constructor (
     private var _deletionDialogShown: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var deletionDialogShown: StateFlow<Boolean> = _deletionDialogShown
 
-
     var awaitingResponse: StateFlow<Boolean> = controller.awaitingResponse
 
 
@@ -222,11 +221,8 @@ class MainScreenViewModel @Inject constructor (
         }
     }
 
-    fun sendForConversion(recording: Recording, targetSpeakerClass: SpeakerClass, onSuccess: () -> Unit, onNetworkFailure: (String) -> Unit) {
+    fun sendForConversion(recording: Recording, targetSpeakerClass: SpeakerClass, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
 
-        viewModelScope.launch(Dispatchers.IO) {
-
-            controller.conversionAPICall(recording.filename, targetSpeakerClass, onSuccess, onNetworkFailure)
-        }
+        controller.conversionAPICall(recording.filename, targetSpeakerClass, onSuccess, onFailure, viewModelScope)
     }
 }

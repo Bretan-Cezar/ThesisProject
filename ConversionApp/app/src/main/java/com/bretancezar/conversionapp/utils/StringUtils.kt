@@ -1,7 +1,13 @@
 package com.bretancezar.conversionapp.utils
 
-import androidx.room.ProvidedTypeConverter
 import java.time.LocalDateTime
+import java.util.*
+
+fun ByteArray.toBase64(): String =
+    String(Base64.getEncoder().encode(this))
+
+fun String.fromBase64(): ByteArray =
+    Base64.getDecoder().decode(this)
 
 fun LocalDateTime?.formatToReadableDateTime(): String {
 

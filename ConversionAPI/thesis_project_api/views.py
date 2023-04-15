@@ -4,6 +4,7 @@ import soundfile as sf
 from time import time_ns
 from service.utils import AudioCompressor, AudioPreprocessor, VoiceConverter
 import numpy as np
+import base64
 
 class ConversionResponseView(APIView):
 
@@ -28,17 +29,22 @@ class ConversionResponseView(APIView):
                                 "audioData" - WAV/FLAC data, file headers included
         """
 
-        request_data = {
-            "targetSpeaker": str(request.data.get('targetSpeaker')),
-            "audioFormat": str(request.data.get('audioFormat')),
-            "sampleRate": str(request.data.get('sampleRate')),
-            "audioData": bytes(request.data.get('audioData')),
-        }
+        request_data: dict()
+
+        try:
+            request_data = {
+                "targetSpeaker": str(request.data.get('targetSpeaker')),
+                "audioFormat": str(request.data.get('audioFormat')),
+                "sampleRate": str(request.data.get('sampleRate')),
+                "audioData": base64.b64decode(str(request.data.get('audioData'))),
+            }
+        except Exception as te:
+            return HttpResponseBadRequest(str(te))
 
         now = str(time_ns())
 
         waveform: np.ndarray
-        input_sample_rate: int
+        input_sample_rate: int = request_data["sampleRate"]
 
         if request_data["audioFormat"] == 'FLAC':
 
@@ -51,13 +57,13 @@ class ConversionResponseView(APIView):
 
             # Write source WAV
             with open(f'./files/inputs/input-{now}.wav', 'wb') as f:
-                sf.write(f, request_data["audioData"], input_sample_rate)
-                waveform, input_sample_rate = sf.read(f)
+                f.write(request_data["audioData"])
+                waveform, input_sample_rate = sf.read(f.name)
 
         else:
             return HttpResponseBadRequest()
         
-
+        '''
         # Preprocess WAV to log-mel-spectrograms list
         melspec_list = self.__preprocessor.preprocess_waveform(waveform, input_sample_rate)
 
@@ -87,6 +93,13 @@ class ConversionResponseView(APIView):
             "sampleRate": conv_sample_rate,
             "audioData": output_data
         }
+'''
 
+        response_data = {
+            "targetSpeaker": request_data["targetSpeaker"],
+            "audioFormat": request_data["audioFormat"],
+            "sampleRate": request_data["sampleRate"],
+            "audioData": str(request.data.get('audioData'))
+        }
 
         return JsonResponse(response_data)

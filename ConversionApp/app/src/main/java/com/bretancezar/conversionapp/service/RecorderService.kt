@@ -76,7 +76,7 @@ class RecorderService @Inject constructor (
 
                 val currentDateTime = LocalDateTime.now()
 
-                val filename = "rec-${currentDateTime.formatToFileDateTime()}-${SpeakerClass.ORIGINAL}.wav"
+                val filename = "rec-${currentDateTime.formatToFileDateTime()}.wav"
 
                 val output: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
 

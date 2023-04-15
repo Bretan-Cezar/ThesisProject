@@ -155,16 +155,16 @@ fun MainScreen(
                                 Text("Waiting...")
                             }
                         }
-                        Button(
 
-                            modifier = Modifier.fillMaxWidth(fraction = 0.66f),
-                            onClick = {
-                                if (!awaitingResponse) {
+                        if (!awaitingResponse) {
+                            Button(
+                                modifier = Modifier.fillMaxWidth(fraction = 0.66f),
+                                onClick = {
                                     viewModel.hideConversionDialog()
                                 }
+                            ) {
+                                Text("Cancel")
                             }
-                        ) {
-                            Text("Cancel")
                         }
                     }
                 }
