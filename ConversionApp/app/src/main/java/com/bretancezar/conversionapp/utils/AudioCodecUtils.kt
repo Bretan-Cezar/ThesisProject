@@ -176,11 +176,6 @@ fun wav2flac(data: ByteArray, channels: Short, sampleRate: Int, bitsPerSample: S
         codec.releaseOutputBuffer(outputBufferId, false)
 
     }
-    else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-        // Subsequent data will conform to new format.
-        // Can ignore if using getOutputFormat(outputBufferId)
-        outputFormat = codec.outputFormat // option B
-    }
 
     if (encoded > 0) {
 

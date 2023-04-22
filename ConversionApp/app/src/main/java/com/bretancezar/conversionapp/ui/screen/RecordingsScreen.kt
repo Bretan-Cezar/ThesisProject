@@ -23,6 +23,7 @@ import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
 import com.bretancezar.conversionapp.ui.theme.DarkYellow
+import com.bretancezar.conversionapp.utils.formatToReadableDateTime
 import com.bretancezar.conversionapp.viewmodel.RecordingsScreenViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -264,7 +265,7 @@ fun RecordingCard(
         ) {
 
             Text(text = "Name: " + entity.filename)
-            Text(text = "Datetime: " + entity.datetime)
+            Text(text = "Datetime: " + entity.datetime.formatToReadableDateTime())
         }
 
         RecordingCardButtonDivider()

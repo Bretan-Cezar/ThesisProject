@@ -1,21 +1,13 @@
 package com.bretancezar.conversionapp.navigation
 
-import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.composable
-import com.bretancezar.conversionapp.controller.AppController
-import com.bretancezar.conversionapp.db.RecordingRoomDatabase
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
-import com.bretancezar.conversionapp.repository.RecordingRepository
-import com.bretancezar.conversionapp.repository.RecordingRepositoryImpl
-import com.bretancezar.conversionapp.service.RecorderService
-import com.bretancezar.conversionapp.service.RetrofitService
-import com.bretancezar.conversionapp.service.StorageService
 import com.bretancezar.conversionapp.ui.screen.MainScreen
 import com.bretancezar.conversionapp.ui.screen.RecordingsScreen
 import com.bretancezar.conversionapp.viewmodel.MainScreenViewModel
@@ -47,22 +39,12 @@ class NavControllerAccessObject(
 }
 
 @Composable
-fun AppNavigation(/*context: Context*/) {
+fun AppNavigation() {
 
     val navController = rememberNavController()
 
-//    val recorderService = RecorderService(context)
-//    val dao = RecordingRoomDatabase.getDatabase(context).entityDao()
-//
-//    val repo: RecordingRepository = RecordingRepositoryImpl(dao)
-//
-//    val storageService = StorageService(repo, context)
-//    val retrofitService = RetrofitService.getInstance()
-//
-//    val appController = AppController(recorderService, retrofitService, storageService)
-
-    val mainScreenViewModel: MainScreenViewModel = hiltViewModel() //MainScreenViewModel(appController)
-    val recordingsScreenViewModel: RecordingsScreenViewModel = hiltViewModel() //RecordingsScreenViewModel(appController)
+    val mainScreenViewModel: MainScreenViewModel = hiltViewModel()
+    val recordingsScreenViewModel: RecordingsScreenViewModel = hiltViewModel()
 
     val accessObject = NavControllerAccessObject(navController, mainScreenViewModel, recordingsScreenViewModel)
 

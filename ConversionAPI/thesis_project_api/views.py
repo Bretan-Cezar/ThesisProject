@@ -21,12 +21,12 @@ class ConversionResponseView(APIView):
         @input - request (JSON): "targetSpeaker" - the desired speaker class for conversion
                                  "audioFormat" - "WAV"/"FLAC"
                                  "sampleRate" - sample rate in Hz of the source audio
-                                 "audioData" - WAV/FLAC data, file headers included
+                                 "audioData" - base64-encoded WAV/FLAC data, file headers included
 
         @output - JsonResponse: "targetSpeaker" - the speaker class of the converted audio
                                 "audioFormat" - "WAV"/"FLAC"
                                 "sampleRate" - sample rate in Hz of the source audio
-                                "audioData" - WAV/FLAC data, file headers included
+                                "audioData" - base64-encoded WAV/FLAC data, file headers included
         """
 
         request_data: dict()
