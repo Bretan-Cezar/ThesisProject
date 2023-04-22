@@ -17,10 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.domain.Recording
-import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
 import com.bretancezar.conversionapp.ui.theme.DarkYellow
 import com.bretancezar.conversionapp.utils.formatToReadableDateTime
@@ -35,7 +33,7 @@ fun RecordingsScreen(
 
     val scaffoldState = rememberScaffoldState()
 
-    val entityToConfirm by viewModel.entityToConfirmDeletion.collectAsState()
+    val entityToConfirmForDeletion by viewModel.entityToConfirmForDeletion.collectAsState()
 
     Scaffold(
 
@@ -50,11 +48,11 @@ fun RecordingsScreen(
             RecordingsList(viewModel, navControllerAccessObject)
         }
 
-        if (entityToConfirm != null) {
+        if (entityToConfirmForDeletion != null) {
 
             AlertDialog(
                 onDismissRequest = {
-                    viewModel.unsetEntityToConfirm()
+                    viewModel.unsetEntityToConfirmForDeletion()
                 },
                 title = {
                     Text(text = "Confirmation")
@@ -74,7 +72,7 @@ fun RecordingsScreen(
                             onClick = {
 
                                 viewModel.deleteRecording()
-                                viewModel.unsetEntityToConfirm()
+                                viewModel.unsetEntityToConfirmForDeletion()
                             }
                         ) {
                             Text("Yes")
@@ -84,7 +82,7 @@ fun RecordingsScreen(
                             modifier = Modifier.fillMaxWidth(fraction = 0.66f),
                             onClick = {
 
-                                viewModel.unsetEntityToConfirm()
+                                viewModel.unsetEntityToConfirmForDeletion()
                             }
                         ) {
                             Text("No")
@@ -107,7 +105,7 @@ fun RecordingsToolbar() {
         TopAppBar(
             title = { Text(text = "Saved Recordings") },
             backgroundColor = MaterialTheme.colors.primaryVariant,
-            contentColor = MaterialTheme.colors.onPrimary
+            contentColor = MaterialTheme.colors.onPrimary,
         )
     }
 }
@@ -274,7 +272,7 @@ fun RecordingCard(
 
         RecordingCardButtonDivider()
 
-        ShareRecordingButton(entity)
+        ShareRecordingButton(viewModel, entity)
 
         RecordingCardButtonDivider()
 
@@ -308,7 +306,7 @@ fun ViewRecordingButton(entity: Recording, navControllerAccessObject: NavControl
 }
 
 @Composable
-fun ShareRecordingButton(entity: Recording) {
+fun ShareRecordingButton(viewModel: RecordingsScreenViewModel, entity: Recording) {
 
     Column(
 
@@ -316,7 +314,7 @@ fun ShareRecordingButton(entity: Recording) {
             .fillMaxWidth(fraction = 0.5f)
             .fillMaxHeight()
             .clickable {
-                       // TODO open share toolbar
+                viewModel.startShareIntent(entity)
             }
             .background(Color.Blue),
 
@@ -339,7 +337,7 @@ fun DeleteRecordingButton(viewModel: RecordingsScreenViewModel, entity: Recordin
             .fillMaxWidth()
             .fillMaxHeight()
             .clickable {
-                viewModel.setEntityToConfirm(entity)
+                viewModel.setEntityToConfirmForDeletion(entity)
             }
             .background(
                 color = Color.Red,

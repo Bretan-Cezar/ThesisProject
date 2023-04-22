@@ -1,6 +1,5 @@
 package com.bretancezar.conversionapp.service
 
-import android.app.Application
 import android.content.Context
 import android.os.Build
 import android.os.Environment
@@ -24,14 +23,7 @@ class StorageService @Inject constructor (
         // Create folders
         SpeakerClass.values().toList().forEach {
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-
-                File((context.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath) + "/$it").mkdir()
-            }
-            else {
-
-                File((context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath) + "/$it").mkdir()
-            }
+            File(getRecordingsFolderPath() + "/$it").mkdir()
         }
     }
 
@@ -50,7 +42,7 @@ class StorageService @Inject constructor (
         return repo.save(recording)
     }
 
-    fun addReceivedRecording(bytes: ByteArray, speakerClass: SpeakerClass, originalName: String, format: AudioFileFormats) {
+    fun addConvertedRecording(bytes: ByteArray, speakerClass: SpeakerClass, originalName: String, format: AudioFileFormats) {
 
         val currentDateTime = LocalDateTime.now()
 
@@ -119,16 +111,19 @@ class StorageService @Inject constructor (
         }
     }
 
-    fun getRecordingFile(speakerClass: SpeakerClass, filename: String): File {
+    private fun getRecordingsFolderPath(): String {
 
-        val path: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-
-            (context.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath) + "/$speakerClass/$filename"
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (context.getExternalFilesDir(Environment.DIRECTORY_RECORDINGS)!!.absolutePath)
         }
         else {
-
-            (context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath) + "/$speakerClass/$filename"
+            (context.getExternalFilesDir(Environment.DIRECTORY_MUSIC)!!.absolutePath)
         }
+    }
+
+    fun getRecordingFile(speakerClass: SpeakerClass, filename: String): File {
+
+        val path: String = getRecordingsFolderPath() + "/$speakerClass/$filename"
 
         return File(path)
     }

@@ -1,12 +1,17 @@
 package com.bretancezar.conversionapp.viewmodel
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.ui.graphics.Color
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.controller.AppController
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
+import com.bretancezar.conversionapp.utils.getFileExtension
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,9 +19,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
 class MainScreenViewModel @Inject constructor (
-    private val controller: AppController
+    private val controller: AppController,
+    private val context: Context
 ): ViewModel() {
 
     val speakersList: List<SpeakerClass> =
@@ -100,10 +107,30 @@ class MainScreenViewModel @Inject constructor (
         _deletionDialogShown.value = false
     }
 
+    fun startShareIntent() {
+
+        if (_currentRecording.value != null) {
+
+            val speakerClass = _currentRecording.value!!.speakerClass
+            val filename = _currentRecording.value!!.filename
+            val file = controller.getRecordingFile(speakerClass, filename)
+
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.setType("audio/${getFileExtension(filename)}")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            val uri = FileProvider.getUriForFile(context, context.packageName + ".provider", file)
+
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            context.startActivity(intent)
+        }
+    }
+
     fun setCurrentRecording(recording: Recording) {
 
         controller.initPlayer(recording)
-        _currentRecordingDuration.value = controller.getRecordingDurationInMs()
+        _currentRecordingDuration.value = controller.getRecordingDurationMs()
         _currentlyPlaying.value = false
 
         _playbackButtonIcon.value = R.drawable.baseline_play_arrow_36
@@ -187,7 +214,7 @@ class MainScreenViewModel @Inject constructor (
         viewModelScope.launch(Dispatchers.Main) {
 
             controller.stopRecording()
-            controller.abortOriginalRecording()
+            controller.abortRecording()
 
             unsetCurrentRecording()
 

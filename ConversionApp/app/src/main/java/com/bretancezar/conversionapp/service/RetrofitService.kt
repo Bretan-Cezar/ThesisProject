@@ -15,7 +15,7 @@ interface RetrofitService {
 
     companion object {
 
-        private var _retrofitService: RetrofitService? = null
+        private var _retrofit: RetrofitService? = null
 
         private operator fun invoke(): RetrofitService {
 
@@ -41,11 +41,11 @@ interface RetrofitService {
 
         fun getInstance(): RetrofitService {
 
-            if (_retrofitService == null) {
+            if (_retrofit == null) {
 
                 val new = RetrofitService()
 
-                _retrofitService = new
+                _retrofit = new
 
                 return new
             }

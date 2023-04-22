@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import kotlin.IllegalStateException
@@ -77,7 +78,7 @@ class AppController @Inject constructor (
         }
     }
 
-    fun getRecordingDurationInMs(): Int {
+    fun getRecordingDurationMs(): Int {
 
         return player.getMediaLength()
     }
@@ -85,11 +86,6 @@ class AppController @Inject constructor (
     fun getPlayerElapsedMs(): Int {
 
         return player.getPlayerPosition()
-    }
-
-    fun seekPlayerToSeconds(ms: Int) {
-
-        player.setPlayerPosition(ms)
     }
 
     fun startRecording() {
@@ -124,16 +120,22 @@ class AppController @Inject constructor (
         throw IllegalStateException("This should never be thrown")
     }
 
+    fun getRecordingFile(speakerClass: SpeakerClass, filename: String): File {
 
-    fun abortOriginalRecording() {
+        return storage.getRecordingFile(speakerClass, filename)
+    }
+
+    fun abortRecording() {
 
         if (currentRecording != null) {
 
             storage.deleteRecordingFile(storage.getRecordingFile(currentRecording!!.speakerClass, currentRecording!!.filename))
             currentRecording = null
         }
+        else {
 
-        Log.w("AppController", "Currently not recording; no abort operation performed.")
+            Log.w("AppController", "Currently not recording; no abort operation performed.")
+        }
     }
 
     fun renameRecording(id: Long, newName: String, onSuccess: () -> Unit, onFailure: (String) -> Unit): Recording? {
@@ -210,7 +212,7 @@ class AppController @Inject constructor (
                         try {
 
                             ioScope.launch(Dispatchers.IO) {
-                                storage.addReceivedRecording(
+                                storage.addConvertedRecording(
                                     bytes = responseDto.audioData.fromBase64(),
                                     speakerClass = SpeakerClass.valueOf(responseDto.targetSpeaker),
                                     originalName = filename,

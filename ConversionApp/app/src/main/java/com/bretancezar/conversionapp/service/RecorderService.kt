@@ -92,7 +92,7 @@ class RecorderService @Inject constructor (
 
                 _recordingThread = thread(true) {
 
-                    writeAudioDataToFile(output, FILE_FORMAT)
+                    writeAudioDataToFile(output)
                 }
 
                 return Recording(
@@ -130,7 +130,7 @@ class RecorderService @Inject constructor (
         }
     }
 
-    private fun writeAudioDataToFile(path: String, format: AudioFileFormats) {
+    private fun writeAudioDataToFile(path: String) {
 
         val sData = ShortArray(bufferElements2Rec)
 
@@ -147,7 +147,7 @@ class RecorderService @Inject constructor (
 
         val data = arrayListOf<Byte>()
 
-        if (format == AudioFileFormats.WAV) {
+        if (FILE_FORMAT == AudioFileFormats.WAV) {
 
             for (byte in wavFileHeader(NO_CHANNELS, RECORDER_SAMPLE_RATE, BITS_PER_SAMPLE, BYTE_RATE)) {
                 data.add(byte)
@@ -170,14 +170,14 @@ class RecorderService @Inject constructor (
             }
         }
 
-        if (format == AudioFileFormats.WAV) {
+        if (FILE_FORMAT == AudioFileFormats.WAV) {
 
             updateWAVHeaderInformation(data)
         }
 
         var dataByteArray = data.toByteArray()
 
-        if (format == AudioFileFormats.FLAC) {
+        if (FILE_FORMAT == AudioFileFormats.FLAC) {
 
             dataByteArray = wav2flac(dataByteArray, NO_CHANNELS, RECORDER_SAMPLE_RATE, BITS_PER_SAMPLE, ENCODER_FRAME_SIZE)
         }

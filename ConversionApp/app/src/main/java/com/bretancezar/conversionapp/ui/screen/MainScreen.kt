@@ -1,6 +1,7 @@
 package com.bretancezar.conversionapp.ui.screen
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
@@ -27,6 +29,7 @@ import com.bretancezar.conversionapp.viewmodel.MainScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
+
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -528,7 +531,7 @@ fun ShareBtn(viewModel: MainScreenViewModel) {
 
     Button(
         onClick = {
-            // TODO open share toolbar
+            viewModel.startShareIntent()
         },
         modifier = Modifier
             .fillMaxWidth(fraction = 0.66f)

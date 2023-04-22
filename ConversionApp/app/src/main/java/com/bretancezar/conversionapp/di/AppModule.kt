@@ -1,23 +1,18 @@
 package com.bretancezar.conversionapp.di
 
-import android.app.Application
 import android.content.Context
-import com.bretancezar.conversionapp.controller.AppController
+import com.bretancezar.conversionapp.Application
 import com.bretancezar.conversionapp.db.RecordingDAO
 import com.bretancezar.conversionapp.db.RecordingRoomDatabase
 import com.bretancezar.conversionapp.repository.RecordingRepository
 import com.bretancezar.conversionapp.repository.RecordingRepositoryImpl
-import com.bretancezar.conversionapp.service.PlayerService
-import com.bretancezar.conversionapp.service.RecorderService
 import com.bretancezar.conversionapp.service.RetrofitService
-import com.bretancezar.conversionapp.service.StorageService
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Inject
 import javax.inject.Singleton
 
 @Module
