@@ -264,12 +264,12 @@ fun RecordBtn(viewModel: MainScreenViewModel) {
 
     LaunchedEffect(buttonState) {
 
-        while (buttonState && recordedSeconds < 300) {
+        while (buttonState && recordedSeconds < viewModel.maxRecordingSeconds-1) {
             delay(1.seconds)
             viewModel.increaseRecordedSeconds()
         }
 
-        if (recordedSeconds == 300) {
+            if (recordedSeconds == viewModel.maxRecordingSeconds-1) {
 
             viewModel.stopAndSaveRecording()
         }
@@ -306,7 +306,7 @@ fun RecordBtn(viewModel: MainScreenViewModel) {
         }
     }
 
-    Text(text = "${deltaSecondsToTime(recordedSeconds)} / ${deltaSecondsToTime(300)}",
+    Text(text = "${deltaSecondsToTime(recordedSeconds)} / ${deltaSecondsToTime(viewModel.maxRecordingSeconds)}",
         modifier = Modifier,
         fontSize = 24.sp)
 }

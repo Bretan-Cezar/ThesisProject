@@ -2,7 +2,6 @@ package com.bretancezar.conversionapp.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
@@ -71,6 +70,7 @@ class MainScreenViewModel @Inject constructor (
 
     var awaitingResponse: StateFlow<Boolean> = controller.awaitingResponse
 
+    val maxRecordingSeconds = 120
 
     fun setSelectedSpeaker(speaker: SpeakerClass?) {
 
