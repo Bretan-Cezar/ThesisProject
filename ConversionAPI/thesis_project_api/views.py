@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import soundfile as sf
-from time import time_ns
+from time import time_ns, sleep
 from service.utils import AudioCompressor, AudioPreprocessor, VoiceConverter
 import numpy as np
 import base64
@@ -13,7 +13,6 @@ class ConversionResponseView(APIView):
         self.__preprocessor = AudioPreprocessor()
         self.__converter = VoiceConverter()
 
-    # Facade?
     def post(self, request, *args, **kwargs) -> HttpResponse:
         """
         TODO add method description

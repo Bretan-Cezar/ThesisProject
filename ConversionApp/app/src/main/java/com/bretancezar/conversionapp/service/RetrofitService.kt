@@ -41,16 +41,13 @@ interface RetrofitService {
 
         fun getInstance(): RetrofitService {
 
-            if (_retrofit == null) {
+            return _retrofit ?: synchronized(this) {
 
                 val new = RetrofitService()
-
                 _retrofit = new
 
                 return new
             }
-
-            throw IllegalStateException("Error on Retrofit instance creation.")
         }
     }
 }

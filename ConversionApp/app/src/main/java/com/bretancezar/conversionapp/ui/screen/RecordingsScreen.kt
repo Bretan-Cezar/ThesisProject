@@ -11,6 +11,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.domain.Recording
+import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
 import com.bretancezar.conversionapp.ui.theme.DarkYellow
 import com.bretancezar.conversionapp.utils.formatToReadableDateTime
@@ -59,7 +61,7 @@ fun RecordingsScreen(
                 },
                 text = {
 
-                    Text("Are you sure you want to delete this recording?")
+                    Text("Are you sure you want to delete ${entityToConfirmForDeletion?.filename} ?")
                 },
                 buttons = {
                     Row(
@@ -154,48 +156,55 @@ fun SpeakerSelector(viewModel: RecordingsScreenViewModel) {
             }
         }
 
-        DropdownMenu(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    BorderStroke(1.dp, MaterialTheme.colors.onBackground),
-                    shape = RoundedCornerShape(16.dp)
-                ).background(
-                    color = Color.DarkGray,
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            offset = DpOffset(0.dp, 0.dp),
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false }
 
+        MaterialTheme(
+            colors = MaterialTheme.colors.copy(surface = Color.DarkGray),
+            shapes = MaterialTheme.shapes.copy(medium = RoundedCornerShape(16.dp))
         ) {
 
-            viewModel.speakersList.forEach {
-
-                    c -> DropdownMenuItem(
-
+            DropdownMenu(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .drawBehind {
-                        drawLine(
-                            color = Color.White,
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = 1f
-                        )
-                    },
-                onClick = { viewModel.setRecordingsFromSpeakerClass(c); menuExpanded = false }
+                    .fillMaxWidth()
+                    .border(
+                        BorderStroke(1.dp, MaterialTheme.colors.onBackground),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                offset = DpOffset(0.dp, 0.dp),
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+
             ) {
 
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
+                viewModel.speakersList.forEach {
+
+                        c -> DropdownMenuItem(
+
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .drawBehind {
+                            if (c != SpeakerClass.ORIGINAL) {
+                                drawLine(
+                                    color = Color.White,
+                                    start = Offset(0f, 0f),
+                                    end = Offset(size.width, 0f),
+                                    strokeWidth = 1f
+                                )
+                            }
+                        },
+                    onClick = { viewModel.setRecordingsFromSpeakerClass(c); menuExpanded = false }
                 ) {
 
-                    Text(text = c.toString())
-                }
-            } }
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+
+                        Text(text = c.toString())
+                    }
+                } }
+            }
         }
+
     }
 }
 

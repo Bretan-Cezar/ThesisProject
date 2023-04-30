@@ -79,6 +79,11 @@ class StorageService @Inject constructor (
 
         val recording = repo.findById(id)
 
+        if (newName.contains(regex = Regex("[|?*<\":>+/'\\[\\]]"))) {
+
+            throw IllegalArgumentException("The new filename must not contain the following characters: | ? * < \" : > + / ' [ ]")
+        }
+
         if (!checkFilenameHasExtension(newName, getFileExtension(recording.filename))) {
 
             throw IllegalArgumentException("The new filename must have the same extension as the original one.")
@@ -101,9 +106,13 @@ class StorageService @Inject constructor (
 
             throw IllegalArgumentException("A recording with the same name in the speaker class already exists.")
         }
+        else if (originalName == newName) {
+
+            return repo.findById(id)
+        }
         else if (!originalFile.exists()) {
 
-            throw IllegalStateException("The original recording to be renamed no longed exists.")
+            throw IllegalStateException("The original recording to be renamed no longer exists.")
         }
         else {
 

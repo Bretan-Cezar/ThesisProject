@@ -46,7 +46,11 @@ fun AppNavigation() {
     val mainScreenViewModel: MainScreenViewModel = hiltViewModel()
     val recordingsScreenViewModel: RecordingsScreenViewModel = hiltViewModel()
 
-    val accessObject = NavControllerAccessObject(navController, mainScreenViewModel, recordingsScreenViewModel)
+    val accessObject = NavControllerAccessObject(
+        navController,
+        mainScreenViewModel,
+        recordingsScreenViewModel
+    )
 
     NavHost(navController = navController, startDestination = "main") {
 
@@ -54,14 +58,20 @@ fun AppNavigation() {
             route = "main"
         ) {
 
-            MainScreen(navControllerAccessObject = accessObject, viewModel = mainScreenViewModel)
+            MainScreen(
+                navControllerAccessObject = accessObject,
+                viewModel = mainScreenViewModel
+            )
         }
 
         composable(
             route = "recordings"
         ) {
 
-            RecordingsScreen(navControllerAccessObject = accessObject, viewModel = recordingsScreenViewModel)
+            RecordingsScreen(
+                navControllerAccessObject = accessObject,
+                viewModel = recordingsScreenViewModel
+            )
         }
     }
 }

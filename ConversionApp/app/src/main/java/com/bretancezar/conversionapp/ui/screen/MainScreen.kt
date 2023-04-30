@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import com.bretancezar.conversionapp.R
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.navigation.NavControllerAccessObject
@@ -594,60 +593,64 @@ fun SpeakerSelector(viewModel: MainScreenViewModel) {
             Text(text = selectedSpeaker?.toString() ?: "-- SELECT --")
         }
 
-        DropdownMenu(
-            modifier = Modifier
-                .fillMaxWidth(fraction = 0.5f)
-                .border(
-                    BorderStroke(1.dp, MaterialTheme.colors.onBackground),
-                    shape = RoundedCornerShape(16.dp)
-                ).background(
-                    color = Color.DarkGray,
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false }
-
+        MaterialTheme(
+            colors = MaterialTheme.colors.copy(surface = Color.DarkGray),
+            shapes = MaterialTheme.shapes.copy(medium = RoundedCornerShape(16.dp))
         ) {
 
-            DropdownMenuItem(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { viewModel.setSelectedSpeaker(null); menuExpanded = false }
-            ) {
-
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-
-                    Text(text = "-- SELECT --")
-                }
-            }
-
-            viewModel.speakersList.forEach {
-
-                    c -> DropdownMenuItem(
-
+            DropdownMenu(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .drawBehind {
-                        drawLine(
-                            color = Color.White,
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = 1f
-                        )
-                    },
-                onClick = { viewModel.setSelectedSpeaker(c); menuExpanded = false }
+                    .fillMaxWidth(fraction = 0.5f)
+                    .border(
+                        BorderStroke(1.dp, MaterialTheme.colors.onBackground),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+
             ) {
 
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.Center,
+                DropdownMenuItem(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    onClick = { viewModel.setSelectedSpeaker(null); menuExpanded = false }
                 ) {
 
-                    Text(text = c.toString())
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+
+                        Text(text = "-- SELECT --")
+                    }
                 }
-            } }
+
+                viewModel.speakersList.forEach {
+
+                        c -> DropdownMenuItem(
+
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .drawBehind {
+                            drawLine(
+                                color = Color.White,
+                                start = Offset(0f, 0f),
+                                end = Offset(size.width, 0f),
+                                strokeWidth = 1f
+                            )
+                        },
+                    onClick = { viewModel.setSelectedSpeaker(c); menuExpanded = false }
+                ) {
+
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+
+                        Text(text = c.toString())
+                    }
+                } }
+            }
         }
+
     }
 }

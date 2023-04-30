@@ -1,17 +1,8 @@
 package com.bretancezar.conversionapp.utils
 
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.pm.PackageManager
-import android.os.Build
-import android.os.Environment
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ComponentActivity
 import androidx.core.content.ContextCompat
-import com.bretancezar.conversionapp.domain.SpeakerClass
-import java.io.*
-import java.time.LocalDateTime
 
 
 fun getRequiredPermissions(): List<String> {
