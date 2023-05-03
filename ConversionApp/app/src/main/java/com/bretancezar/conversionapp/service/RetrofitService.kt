@@ -20,8 +20,8 @@ interface RetrofitService {
         private operator fun invoke(): RetrofitService {
 
             // TODO replace with server IP
-            val baseURLString = "192.168.1.67:8090/api/"
-            val serverTimeoutInterval: Long = 8
+            val baseURLString = "192.168.227.27:8090/api/"
+            val serverTimeoutInterval: Long = 30
 
             val http = OkHttpClient.Builder()
                 .connectTimeout(serverTimeoutInterval, TimeUnit.SECONDS)

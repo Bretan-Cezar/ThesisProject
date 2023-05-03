@@ -55,6 +55,15 @@ cover/
 *.mo
 *.pot
 
+# Data
+*.wav
+
+# Binary objects
+*.pkl
+
+# PyTorch models
+*.pt
+
 # Django stuff:
 *.log
 local_settings.py
@@ -143,6 +152,11 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Other folders
+ConversionAPI/parallel_wavegan
+ConversionAPI/mapper
+ConversionAPI/vocoder
 
 # PyCharm
 #  JetBrains specific template is maintainted in a separate JetBrains.gitignore that can

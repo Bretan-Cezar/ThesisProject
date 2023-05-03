@@ -1,0 +1,29 @@
+{
+    "conversion": 
+    {
+        "gpu": 0,
+        "mapper": {
+            "path": "./mapper",
+            "ds": "cmu_arctic",
+            "exp": "train_czr2bdl",
+            "config": "model_config.json",
+            "model": "600.convs2s.pt",
+            "attention_mode": "raw"
+        },
+        "vocoder": {
+            "path": "./vocoder",
+            "name": "arctic_5spk_flen64ms_fshift8ms",
+            "model": "checkpoint-400000steps.pkl",
+            "config": "conf/parallel_wavegan.v1.yaml"
+        }
+        
+    },
+    "files":
+    {
+        "path": "./data",
+        "inputs": "input",
+        "outputs": "converted",
+        "data_config": "data_config.json",
+        "scaler_statistics": "stat.pkl"
+    }
+}

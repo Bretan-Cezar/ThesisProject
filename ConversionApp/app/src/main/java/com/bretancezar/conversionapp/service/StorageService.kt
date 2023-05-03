@@ -46,9 +46,20 @@ class StorageService @Inject constructor (
 
         val currentDateTime = LocalDateTime.now()
 
-        val filename = "${getFilenameWithoutExtension(originalName)}-conv-${speakerClass}.${format.toString().lowercase()}"
+        var filename = "${getFilenameWithoutExtension(originalName)}-conv-${speakerClass}.${format.toString().lowercase()}"
 
-        writeRecordingFile(bytes, getRecordingFile(speakerClass, filename))
+        var file = getRecordingFile(speakerClass, filename)
+
+        var repeatIndex = 0
+
+        while (file.exists()) {
+
+            repeatIndex++
+            filename = "${getFilenameWithoutExtension(originalName)}-conv-${speakerClass}_$repeatIndex.${format.toString().lowercase()}"
+            file = getRecordingFile(speakerClass, filename)
+        }
+
+        writeRecordingFile(bytes, file)
 
         repo.save(Recording(
             id = null,
@@ -71,6 +82,7 @@ class StorageService @Inject constructor (
         }
         else {
 
+            repo.deleteById(id)
             throw IllegalStateException("The file meant for deletion no longer exists or was not found on storage.")
         }
     }
@@ -171,17 +183,15 @@ class StorageService @Inject constructor (
                 buf.close()
 
                 Log.i("STORAGE", "File successfully written.")
-            }
-            catch (e: FileNotFoundException) {
+            } catch (e: FileNotFoundException) {
                 Log.e("STORAGE", e.stackTraceToString())
-            }
-            catch (e: IOException) {
+            } catch (e: IOException) {
                 Log.e("STORAGE", e.stackTraceToString())
             }
         }
         else {
 
-            throw IllegalArgumentException("A recording with the same name already exists.")
+            throw IllegalStateException("This should never be thrown; file already exists")
         }
     }
 

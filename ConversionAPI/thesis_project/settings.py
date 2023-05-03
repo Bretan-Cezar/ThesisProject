@@ -24,8 +24,7 @@ SECRET_KEY = 'django-insecure-4@=+ou=rd_mny!&x)%y76dywy5vel1qyb4)1clm)w13m78oc==
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_CIDR_NETS = ['192.168.1.0/24']
-ALLOWED_HOSTS = ['192.168.1.67']
+ALLOWED_CIDR_NETS = ['192.168.0.0/16']
 
 
 # Application definition
