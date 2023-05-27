@@ -2,55 +2,13 @@ from rest_framework.views import APIView
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 import soundfile as sf
 from time import time_ns, sleep
-from service.utils import AudioCompressor, AudioPreprocessor, VoiceConverter
 import numpy as np
 import base64
-import matplotlib.pyplot as pyplot
-import torch
-import json
+import service
 import os
+from typing import Dict
 
 class ConversionResponseView(APIView):
-
-    def __init__(self):
-
-        with open('./thesis_project_api/api_config.json') as conf:
-            self.__api_config = json.load(conf)
-
-            gpu = self.__api_config["conversion"]["gpu"]
-
-            files_root = self.__api_config["files"]["path"]
-            mapper_root = self.__api_config["conversion"]["mapper"]["path"]
-            vocoder_root = self.__api_config["conversion"]["vocoder"]["path"]
-
-            if torch.cuda.is_available() and gpu >= 0:
-
-                self.__device = torch.device(f'cuda:{gpu}')
-            else:
-
-                self.__device = torch.device('cpu')
-
-            if self.__device.type == 'cuda':
-                torch.cuda.device(self.__device)
-
-            self.__compressor = AudioCompressor()
-
-            self.__preprocessor = AudioPreprocessor(
-                os.path.join(files_root, self.__api_config["files"]["data_config"]), 
-                os.path.join(files_root, self.__api_config["files"]["scaler_statistics"]), 
-                self.__device)
-            
-            self.__converter = VoiceConverter(
-                os.path.join(mapper_root, self.__api_config["conversion"]["mapper"]["ds"], self.__api_config["conversion"]["mapper"]["exp"]),
-                self.__api_config["conversion"]["mapper"]["model"],
-                self.__api_config["conversion"]["mapper"]["config"],
-                os.path.join(vocoder_root, self.__api_config["conversion"]["vocoder"]["name"]),
-                self.__api_config["conversion"]["vocoder"]["model"],
-                self.__api_config["conversion"]["vocoder"]["config"],
-                self.__device
-            )
-
-
 
     def post(self, request, *args, **kwargs) -> HttpResponse:
         """
@@ -82,15 +40,18 @@ class ConversionResponseView(APIView):
         waveform: np.ndarray
         input_sample_rate: int = request_data["sampleRate"]
 
-        input_files_path = os.path.join(self.__api_config["files"]["path"], self.__api_config["files"]["inputs"])
+        input_files_path = os.path.join(service.api_config["files"]["path"], service.api_config["files"]["inputs"])
 
         now = str(time_ns())
         if request_data["audioFormat"] == 'FLAC':
-
+            
             # Write source FLAC and decompress to WAV
+
+            return HttpResponse(status=501)
+        
             with open(os.path.join(input_files_path, f'input-{now}.flac'), 'wb') as f:
                 f.write(request_data["audioData"])
-                waveform, input_sample_rate = self.__compressor.decompress(f)
+                waveform, input_sample_rate = service.compressor.decompress(f)
         
         elif request_data["audioFormat"] == 'WAV':
 
@@ -104,16 +65,23 @@ class ConversionResponseView(APIView):
         
         
         # Preprocess WAV to log-mel-spectrograms list
-        melspec_list = self.__preprocessor.preprocess_waveform(waveform, input_sample_rate)
-
+        melspec_list = service.preprocessor.preprocess_waveform(waveform, input_sample_rate)
+        
         # Convert source log-mel-spectrograms to target speaker WAV
-        output_waveform, conv_sample_rate = self.__converter.convert(
-            self.__api_config["conversion"]["mapper"]["attention_mode"],
-            melspec_list, 
-            request_data["targetSpeaker"]
-        )
+        trg_spk = request_data["targetSpeaker"]
 
-        output_files_path = os.path.join(self.__api_config["files"]["path"], self.__api_config["files"]["outputs"])
+        converter = service.converters[trg_spk]
+        vocoder = service.vocoders[trg_spk]
+
+        conv_melspec_list = converter.convert(melspec_list, trg_spk)
+
+        del melspec_list
+
+        output_waveform, conv_sample_rate = vocoder.vocode(conv_melspec_list)
+
+        del conv_melspec_list
+        
+        output_files_path = os.path.join(service.api_config["files"]["path"], service.api_config["files"]["outputs"])
         output_data: bytes
  
         now = str(time_ns())
@@ -121,12 +89,13 @@ class ConversionResponseView(APIView):
             # Write waveform to WAV file on disk 
             sf.write(f, output_waveform, conv_sample_rate)
 
-        
+        del output_waveform
+
         with open(os.path.join(output_files_path, f'conv-{now}.wav'), 'rb') as f:
             if request_data["audioFormat"] == 'FLAC':
                 # Reload in memory as FLAC compressed file
 
-                output_data = self.__compressor.compress(f)
+                output_data = service.compressor.compress(f)
 
             elif request_data["audioFormat"] == 'WAV':
                 # Reload WAV in memory
@@ -140,6 +109,6 @@ class ConversionResponseView(APIView):
             "sampleRate": conv_sample_rate,
             "audioData": base64.b64encode(output_data).decode('utf-8')
         }
-        
-
+      
         return JsonResponse(response_data)
+

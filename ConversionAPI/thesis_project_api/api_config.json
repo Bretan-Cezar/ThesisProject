@@ -2,19 +2,55 @@
     "conversion": 
     {
         "gpu": 0,
-        "mapper": {
-            "path": "./mapper",
-            "ds": "cmu_arctic",
-            "exp": "train_czr2bdl",
-            "config": "model_config.json",
-            "model": "600.convs2s.pt",
-            "attention_mode": "raw"
+        "mappers": {
+            "path": "./mapper/cmu_arctic",
+            "files": [
+                {
+                    "trg_spk": "aew",
+                    "name": "train_czr2aew",
+                    "config": "model_config.json",
+                    "model": "1000.convs2s.pt",
+                    "attention_mode": "raw"
+                },
+                {
+                    "trg_spk": "bdl",
+                    "name": "train_czr2bdl",
+                    "config": "model_config.json",
+                    "model": "1000.convs2s.pt",
+                    "attention_mode": "raw"
+                },
+                {
+                    "trg_spk": "rms",
+                    "name": "train_czr2rms",
+                    "config": "model_config.json",
+                    "model": "1000.convs2s.pt",
+                    "attention_mode": "raw"
+                }
+            ]
         },
-        "vocoder": {
+        "vocoders": {
             "path": "./vocoder",
-            "name": "arctic_5spk_flen64ms_fshift8ms",
-            "model": "checkpoint-400000steps.pkl",
-            "config": "conf/parallel_wavegan.v1.yaml"
+            "files": [
+                {
+                    "trg_spk": "aew",
+                    "name": "hifigan_aew_180k",
+                    "model": "HifiGan--val_loss=0.1219-epoch=1309.nemo",
+                    "config": "conf/hifigan.v2.yaml"
+                },
+                {
+                    "trg_spk": "bdl",
+                    "name": "hifigan_bdl_235k",
+                    "model": "HifiGan--val_loss=0.1186-epoch=1709.nemo",
+                    "config": "conf/hifigan.v2.yaml"
+                },
+                {
+                    "trg_spk": "rms",
+                    "name": "hifigan_rms_169k",
+                    "model": "HifiGan--val_loss=0.1254-epoch=1229.nemo",
+                    "config": "conf/hifigan.v2.yaml"
+                }
+            ]
+
         }
         
     },

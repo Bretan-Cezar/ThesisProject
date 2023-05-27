@@ -2,7 +2,7 @@ package com.bretancezar.conversionapp.domain
 
 enum class SpeakerClass {
     ORIGINAL,
+    aew,
     bdl,
-    B,
-    C
+    rms
 }

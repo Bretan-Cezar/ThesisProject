@@ -71,6 +71,7 @@ class PlayerService @Inject constructor (
 
         if (_mediaPlayer != null) {
             _mediaPlayer!!.run {
+                seekTo(0)
                 stop()
                 prepare()
             }

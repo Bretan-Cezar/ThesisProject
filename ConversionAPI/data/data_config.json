@@ -1,10 +1,13 @@
 {
     "num_mels": 80,
-    "fs": 16000,
+    "sr": 16000,
     "flen": 1024,
-    "fshift": 128,
-    "fmin": 80,
-    "fmax": 7600,
+    "fshift": 256,
+    "fmin": 0,
+    "fmax": 8000,
     "trim_silence": false,
-    "top_db": 30
+    "normalize": true,
+    "top_db": null,
+    "norm_technique": "per_melspec",
+    "stat_path": null
 }
