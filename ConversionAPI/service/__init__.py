@@ -2,6 +2,7 @@ from service.compressor import AudioCompressor
 from service.preprocessor import AudioPreprocessor
 from service.mapper import SpectrogramConverter
 from service.vocoder import SpectrogramVocoder
+from service.enhancer import SpectrogramEnhancer
 import torch
 import json
 import os
@@ -11,6 +12,7 @@ compressor = AudioCompressor()
 preprocessor: AudioPreprocessor = None
 converters: Dict[str, SpectrogramConverter] = dict()
 vocoders: Dict[str, SpectrogramVocoder] = dict()
+enhancer: SpectrogramEnhancer = None
 api_config: Dict = dict()
 
 with open('./thesis_project_api/api_config.json') as conf:
@@ -62,6 +64,11 @@ with open('./thesis_project_api/api_config.json') as conf:
         vocoder.load()
         vocoders[vocoder_json["trg_spk"]] = vocoder
 
+    enhancer_config = api_config["conversion"]["enhancer"]
+
+    if enhancer_config != None:
+        enhancer = SpectrogramEnhancer(enhancer_config["path"], enhancer_config["file"], __device)
+        enhancer.load()
 
 
 def unload_converter_models():

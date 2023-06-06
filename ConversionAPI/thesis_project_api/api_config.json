@@ -7,23 +7,23 @@
             "files": [
                 {
                     "trg_spk": "aew",
-                    "name": "train_czr2aew",
+                    "name": "train_czr2aew_x2",
                     "config": "model_config.json",
-                    "model": "1000.convs2s.pt",
+                    "model": "2000.convs2s.pt",
                     "attention_mode": "raw"
                 },
                 {
                     "trg_spk": "bdl",
-                    "name": "train_czr2bdl",
+                    "name": "train_czr2bdl_x2",
                     "config": "model_config.json",
-                    "model": "1000.convs2s.pt",
+                    "model": "2000.convs2s.pt",
                     "attention_mode": "raw"
                 },
                 {
                     "trg_spk": "rms",
-                    "name": "train_czr2rms",
+                    "name": "train_czr2rms_x2",
                     "config": "model_config.json",
-                    "model": "1000.convs2s.pt",
+                    "model": "2000.convs2s.pt",
                     "attention_mode": "raw"
                 }
             ]
@@ -51,8 +51,11 @@
                 }
             ]
 
+        },
+        "enhancer": {
+            "path": "./enhancer",
+            "file": "spectrogram-enhancer--g_loss=0.0000-epoch=1698.nemo"
         }
-        
     },
     "files":
     {

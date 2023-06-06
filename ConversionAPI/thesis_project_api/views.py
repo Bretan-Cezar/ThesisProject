@@ -71,11 +71,16 @@ class ConversionResponseView(APIView):
         trg_spk = request_data["targetSpeaker"]
 
         converter = service.converters[trg_spk]
+        enhancer = service.enhancer
         vocoder = service.vocoders[trg_spk]
 
         conv_melspec_list = converter.convert(melspec_list, trg_spk)
 
         del melspec_list
+
+        if enhancer != None:
+
+            conv_melspec_list = enhancer.enhance(conv_melspec_list)
 
         output_waveform, conv_sample_rate = vocoder.vocode(conv_melspec_list)
 
