@@ -1,3 +1,6 @@
+# Derived from original implementation: https://github.com/kamepong/ConvS2S-VC
+# Papers: https://arxiv.org/abs/1811.01609 ; https://arxiv.org/abs/2104.06900
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,7 +8,6 @@ import torch.nn.functional as F
 import time
 
 import module as md
-
 
 class EncoderAny(nn.Module):
 

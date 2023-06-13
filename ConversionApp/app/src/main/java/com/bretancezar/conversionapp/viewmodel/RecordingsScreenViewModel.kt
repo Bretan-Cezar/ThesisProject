@@ -2,8 +2,6 @@ package com.bretancezar.conversionapp.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.StrictMode
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

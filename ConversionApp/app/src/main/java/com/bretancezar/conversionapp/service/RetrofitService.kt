@@ -21,7 +21,7 @@ interface RetrofitService {
         private operator fun invoke(): RetrofitService {
 
             // TODO replace with server IP
-            val baseURLString = "192.168.227.34:8090/api/"
+            val baseURLString = "192.168.236.227:8090/api/"
             val serverTimeoutInterval: Long = 20
 
             val http = OkHttpClient.Builder()

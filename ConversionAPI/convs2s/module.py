@@ -1,4 +1,6 @@
 # Copyright 2021 Hirokazu Kameoka
+# Paper: https://arxiv.org/abs/2104.06900
+# Original implementation: https://github.com/kamepong/ConvS2S-VC
 
 import numpy as np
 import torch

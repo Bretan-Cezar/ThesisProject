@@ -1,4 +1,6 @@
 # Copyright 2021 Hirokazu Kameoka
+# Papers: https://arxiv.org/abs/1811.01609 ; https://arxiv.org/abs/2104.06900
+# Original implementation: https://github.com/kamepong/ConvS2S-VC
 
 import numpy as np
 import torch
@@ -7,7 +9,6 @@ import torch.nn.functional as F
 import time
 
 import convs2s.module as md
-
 
 class Encoder1(nn.Module):
 

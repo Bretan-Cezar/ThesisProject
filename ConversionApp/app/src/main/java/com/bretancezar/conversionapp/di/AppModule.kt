@@ -1,7 +1,6 @@
 package com.bretancezar.conversionapp.di
 
 import android.content.Context
-import com.bretancezar.conversionapp.Application
 import com.bretancezar.conversionapp.db.RecordingDAO
 import com.bretancezar.conversionapp.db.RecordingRoomDatabase
 import com.bretancezar.conversionapp.repository.RecordingRepository

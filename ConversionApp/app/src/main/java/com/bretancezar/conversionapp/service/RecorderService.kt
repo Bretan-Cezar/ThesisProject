@@ -11,10 +11,6 @@ import androidx.core.app.ActivityCompat
 import com.bretancezar.conversionapp.domain.Recording
 import com.bretancezar.conversionapp.domain.SpeakerClass
 import com.bretancezar.conversionapp.utils.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
